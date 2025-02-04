@@ -1,7 +1,4 @@
-﻿using NodeGraph.NET6.Extensions;
-using NodeGraph.NET6.Utilities;
-using NodeGraph.NET6.Operation;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -12,6 +9,9 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using NodeGraph.NET6.Extensions;
+using NodeGraph.NET6.Operation;
+using NodeGraph.NET6.Utilities;
 
 namespace NodeGraph.NET6.Controls
 {
@@ -29,15 +29,29 @@ namespace NodeGraph.NET6.Controls
 
     public class NodeGraph : MultiSelector
     {
-        public Canvas Canvas { get; private set; } = null;
+        public Canvas Canvas
+        {
+            get => (Canvas)GetValue(CanvasProperty);
+            set => SetValue(CanvasProperty, value);
+        }
+        public static readonly DependencyProperty CanvasProperty = DependencyProperty.Register(
+            nameof(Canvas),
+            typeof(Canvas),
+            typeof(NodeGraph),
+            new FrameworkPropertyMetadata(null)
+        );
 
         public Key MoveWithKey
         {
             get => (Key)GetValue(MoveWithKeyProperty);
             set => SetValue(MoveWithKeyProperty, value);
         }
-        public static readonly DependencyProperty MoveWithKeyProperty =
-            DependencyProperty.Register(nameof(MoveWithKey), typeof(Key), typeof(NodeGraph), new FrameworkPropertyMetadata(Key.None));
+        public static readonly DependencyProperty MoveWithKeyProperty = DependencyProperty.Register(
+            nameof(MoveWithKey),
+            typeof(Key),
+            typeof(NodeGraph),
+            new FrameworkPropertyMetadata(Key.None)
+        );
 
         public MouseButton MoveWithMouse
         {
@@ -45,7 +59,12 @@ namespace NodeGraph.NET6.Controls
             set => SetValue(MoveWithMouseProperty, value);
         }
         public static readonly DependencyProperty MoveWithMouseProperty =
-            DependencyProperty.Register(nameof(MoveWithMouse), typeof(MouseButton), typeof(NodeGraph), new FrameworkPropertyMetadata(MouseButton.Middle));
+            DependencyProperty.Register(
+                nameof(MoveWithMouse),
+                typeof(MouseButton),
+                typeof(NodeGraph),
+                new FrameworkPropertyMetadata(MouseButton.Middle)
+            );
 
         public Key ScaleWithKey
         {
@@ -53,39 +72,80 @@ namespace NodeGraph.NET6.Controls
             set => SetValue(ScaleWithKeyProperty, value);
         }
         public static readonly DependencyProperty ScaleWithKeyProperty =
-            DependencyProperty.Register(nameof(ScaleWithKey), typeof(Key), typeof(NodeGraph), new FrameworkPropertyMetadata(Key.None));
+            DependencyProperty.Register(
+                nameof(ScaleWithKey),
+                typeof(Key),
+                typeof(NodeGraph),
+                new FrameworkPropertyMetadata(Key.None)
+            );
 
         public double Scale
         {
             get => (double)GetValue(ScaleProperty);
             set => SetValue(ScaleProperty, value);
         }
-        public static readonly DependencyProperty ScaleProperty =
-            DependencyProperty.Register(nameof(Scale), typeof(double), typeof(NodeGraph), new FrameworkPropertyMetadata(1.0, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+        public static readonly DependencyProperty ScaleProperty = DependencyProperty.Register(
+            nameof(Scale),
+            typeof(double),
+            typeof(NodeGraph),
+            new FrameworkPropertyMetadata(
+                1.0,
+                FrameworkPropertyMetadataOptions.BindsTwoWayByDefault
+            )
+        );
 
         public double MinScale
         {
             get => (double)GetValue(MinScaleProperty);
             set => SetValue(MinScaleProperty, value);
         }
-        public static readonly DependencyProperty MinScaleProperty =
-            DependencyProperty.Register(nameof(MinScale), typeof(double), typeof(NodeGraph), new FrameworkPropertyMetadata(0.1));
+        public static readonly DependencyProperty MinScaleProperty = DependencyProperty.Register(
+            nameof(MinScale),
+            typeof(double),
+            typeof(NodeGraph),
+            new FrameworkPropertyMetadata(0.1)
+        );
 
         public double ScaleRate
         {
             get => (double)GetValue(ScaleRateProperty);
             set => SetValue(ScaleRateProperty, value);
         }
-        public static readonly DependencyProperty ScaleRateProperty =
-            DependencyProperty.Register(nameof(ScaleRate), typeof(double), typeof(NodeGraph), new FrameworkPropertyMetadata(0.1));
+        public static readonly DependencyProperty ScaleRateProperty = DependencyProperty.Register(
+            nameof(ScaleRate),
+            typeof(double),
+            typeof(NodeGraph),
+            new FrameworkPropertyMetadata(0.1)
+        );
 
         public Point Offset
         {
             get => (Point)GetValue(OffsetProperty);
             set => SetValue(OffsetProperty, value);
         }
-        public static readonly DependencyProperty OffsetProperty =
-            DependencyProperty.Register(nameof(Offset), typeof(Point), typeof(NodeGraph), new FrameworkPropertyMetadata(new Point(0, 0), FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OffsetPropertyChanged));
+        public static readonly DependencyProperty OffsetProperty = DependencyProperty.Register(
+            nameof(Offset),
+            typeof(Point),
+            typeof(NodeGraph),
+            new FrameworkPropertyMetadata(
+                new Point(0, 0),
+                FrameworkPropertyMetadataOptions.BindsTwoWayByDefault,
+                OffsetPropertyChanged
+            )
+        );
+
+        public Point RightClickPoint
+        {
+            get => (Point)GetValue(RightClickPointProperty);
+            set => SetValue(RightClickPointProperty, value);
+        }
+        public static readonly DependencyProperty RightClickPointProperty =
+            DependencyProperty.Register(
+                nameof(RightClickPoint),
+                typeof(Point),
+                typeof(NodeGraph),
+                new FrameworkPropertyMetadata(new Point(0, 0))
+            );
 
         public ICommand PreviewConnectLinkCommand
         {
@@ -93,7 +153,12 @@ namespace NodeGraph.NET6.Controls
             set => SetValue(PreviewConnectLinkCommandProperty, value);
         }
         public static readonly DependencyProperty PreviewConnectLinkCommandProperty =
-            DependencyProperty.Register(nameof(PreviewConnectLinkCommand), typeof(ICommand), typeof(NodeGraph), new FrameworkPropertyMetadata(null));
+            DependencyProperty.Register(
+                nameof(PreviewConnectLinkCommand),
+                typeof(ICommand),
+                typeof(NodeGraph),
+                new FrameworkPropertyMetadata(null)
+            );
 
         public ICommand ConnectedLinkCommand
         {
@@ -101,7 +166,12 @@ namespace NodeGraph.NET6.Controls
             set => SetValue(ConnectedLinkCommandProperty, value);
         }
         public static readonly DependencyProperty ConnectedLinkCommandProperty =
-            DependencyProperty.Register(nameof(ConnectedLinkCommand), typeof(ICommand), typeof(NodeGraph), new FrameworkPropertyMetadata(null));
+            DependencyProperty.Register(
+                nameof(ConnectedLinkCommand),
+                typeof(ICommand),
+                typeof(NodeGraph),
+                new FrameworkPropertyMetadata(null)
+            );
 
         public ICommand DisconnectedLinkCommand
         {
@@ -109,7 +179,12 @@ namespace NodeGraph.NET6.Controls
             set => SetValue(DisconnectedLinkCommandProperty, value);
         }
         public static readonly DependencyProperty DisconnectedLinkCommandProperty =
-            DependencyProperty.Register(nameof(DisconnectedLinkCommand), typeof(ICommand), typeof(NodeGraph), new FrameworkPropertyMetadata(null));
+            DependencyProperty.Register(
+                nameof(DisconnectedLinkCommand),
+                typeof(ICommand),
+                typeof(NodeGraph),
+                new FrameworkPropertyMetadata(null)
+            );
 
         public ICommand BeginMoveNodesCommand
         {
@@ -117,7 +192,12 @@ namespace NodeGraph.NET6.Controls
             set => SetValue(BeginMoveNodesCommandProperty, value);
         }
         public static readonly DependencyProperty BeginMoveNodesCommandProperty =
-            DependencyProperty.Register(nameof(BeginMoveNodesCommand), typeof(ICommand), typeof(NodeGraph), new FrameworkPropertyMetadata(null));
+            DependencyProperty.Register(
+                nameof(BeginMoveNodesCommand),
+                typeof(ICommand),
+                typeof(NodeGraph),
+                new FrameworkPropertyMetadata(null)
+            );
 
         public ICommand EndMoveNodesCommand
         {
@@ -125,7 +205,12 @@ namespace NodeGraph.NET6.Controls
             set => SetValue(EndMoveNodesCommandProperty, value);
         }
         public static readonly DependencyProperty EndMoveNodesCommandProperty =
-            DependencyProperty.Register(nameof(EndMoveNodesCommand), typeof(ICommand), typeof(NodeGraph), new FrameworkPropertyMetadata(null));
+            DependencyProperty.Register(
+                nameof(EndMoveNodesCommand),
+                typeof(ICommand),
+                typeof(NodeGraph),
+                new FrameworkPropertyMetadata(null)
+            );
 
         public Style NodeLinkStyle
         {
@@ -133,7 +218,12 @@ namespace NodeGraph.NET6.Controls
             set => SetValue(NodeLinkStyleProperty, value);
         }
         public static readonly DependencyProperty NodeLinkStyleProperty =
-            DependencyProperty.Register(nameof(NodeLinkStyle), typeof(Style), typeof(NodeGraph), new FrameworkPropertyMetadata(null, NodeLinkStylePropertyChanged));
+            DependencyProperty.Register(
+                nameof(NodeLinkStyle),
+                typeof(Style),
+                typeof(NodeGraph),
+                new FrameworkPropertyMetadata(null, NodeLinkStylePropertyChanged)
+            );
 
         public Style GroupNodeStyle
         {
@@ -141,23 +231,36 @@ namespace NodeGraph.NET6.Controls
             set => SetValue(GroupNodeStyleProperty, value);
         }
         public static readonly DependencyProperty GroupNodeStyleProperty =
-            DependencyProperty.Register(nameof(GroupNodeStyle), typeof(Style), typeof(NodeGraph), new FrameworkPropertyMetadata(null));
+            DependencyProperty.Register(
+                nameof(GroupNodeStyle),
+                typeof(Style),
+                typeof(NodeGraph),
+                new FrameworkPropertyMetadata(null)
+            );
 
         public IEnumerable NodeLinks
         {
             get => (IEnumerable)GetValue(NodeLinksProperty);
             set => SetValue(NodeLinksProperty, value);
         }
-        public static readonly DependencyProperty NodeLinksProperty =
-            DependencyProperty.Register(nameof(NodeLinks), typeof(IEnumerable), typeof(NodeGraph), new FrameworkPropertyMetadata(null, NodeLinksPropertyChanged));
+        public static readonly DependencyProperty NodeLinksProperty = DependencyProperty.Register(
+            nameof(NodeLinks),
+            typeof(IEnumerable),
+            typeof(NodeGraph),
+            new FrameworkPropertyMetadata(null, NodeLinksPropertyChanged)
+        );
 
         public IEnumerable GroupNodes
         {
             get => (IEnumerable)GetValue(GroupNodesProperty);
             set => SetValue(GroupNodesProperty, value);
         }
-        public static readonly DependencyProperty GroupNodesProperty =
-            DependencyProperty.Register(nameof(GroupNodes), typeof(IEnumerable), typeof(NodeGraph), new FrameworkPropertyMetadata(null, GroupNodesPropertyChanged));
+        public static readonly DependencyProperty GroupNodesProperty = DependencyProperty.Register(
+            nameof(GroupNodes),
+            typeof(IEnumerable),
+            typeof(NodeGraph),
+            new FrameworkPropertyMetadata(null, GroupNodesPropertyChanged)
+        );
 
         public GroupIntersectType GroupIntersectType
         {
@@ -165,7 +268,12 @@ namespace NodeGraph.NET6.Controls
             set => SetValue(GroupIntersectTypeProperty, value);
         }
         public static readonly DependencyProperty GroupIntersectTypeProperty =
-            DependencyProperty.Register(nameof(GroupIntersectType), typeof(GroupIntersectType), typeof(NodeGraph), new FrameworkPropertyMetadata(GroupIntersectType.BoundingBox));
+            DependencyProperty.Register(
+                nameof(GroupIntersectType),
+                typeof(GroupIntersectType),
+                typeof(NodeGraph),
+                new FrameworkPropertyMetadata(GroupIntersectType.BoundingBox)
+            );
 
         public bool AllowToOverrideConnection
         {
@@ -173,7 +281,12 @@ namespace NodeGraph.NET6.Controls
             set => SetValue(AllowToOverrideConnectionProperty, value);
         }
         public static readonly DependencyProperty AllowToOverrideConnectionProperty =
-            DependencyProperty.Register(nameof(AllowToOverrideConnection), typeof(bool), typeof(NodeGraph), new FrameworkPropertyMetadata(false, AllowToOverrideConnectionPropertyChanged));
+            DependencyProperty.Register(
+                nameof(AllowToOverrideConnection),
+                typeof(bool),
+                typeof(NodeGraph),
+                new FrameworkPropertyMetadata(false, AllowToOverrideConnectionPropertyChanged)
+            );
 
         public RangeSelectionMode RangeSelectionMdoe
         {
@@ -181,7 +294,12 @@ namespace NodeGraph.NET6.Controls
             set => SetValue(RangeSelectionMdoeProperty, value);
         }
         public static readonly DependencyProperty RangeSelectionMdoeProperty =
-            DependencyProperty.Register(nameof(RangeSelectionMdoe), typeof(RangeSelectionMode), typeof(NodeGraph), new FrameworkPropertyMetadata(RangeSelectionMode.Contain));
+            DependencyProperty.Register(
+                nameof(RangeSelectionMdoe),
+                typeof(RangeSelectionMode),
+                typeof(NodeGraph),
+                new FrameworkPropertyMetadata(RangeSelectionMode.Contain)
+            );
 
         public ICommand PreviewDropOnCanvasCommand
         {
@@ -189,7 +307,12 @@ namespace NodeGraph.NET6.Controls
             set => SetValue(PreviewDropOnCanvasCommandProperty, value);
         }
         public static readonly DependencyProperty PreviewDropOnCanvasCommandProperty =
-            DependencyProperty.Register(nameof(PreviewDropOnCanvasCommand), typeof(ICommand), typeof(NodeGraph), new FrameworkPropertyMetadata(null));
+            DependencyProperty.Register(
+                nameof(PreviewDropOnCanvasCommand),
+                typeof(ICommand),
+                typeof(NodeGraph),
+                new FrameworkPropertyMetadata(null)
+            );
 
         public ICommand MouseMoveOnCanvasCommand
         {
@@ -197,14 +320,19 @@ namespace NodeGraph.NET6.Controls
             set => SetValue(MouseMoveOnCanvasCommandProperty, value);
         }
         public static readonly DependencyProperty MouseMoveOnCanvasCommandProperty =
-            DependencyProperty.Register(nameof(MouseMoveOnCanvasCommand), typeof(ICommand), typeof(NodeGraph), new FrameworkPropertyMetadata(null));
-
+            DependencyProperty.Register(
+                nameof(MouseMoveOnCanvasCommand),
+                typeof(ICommand),
+                typeof(NodeGraph),
+                new FrameworkPropertyMetadata(null)
+            );
 
         ControlTemplate NodeTemplate => _NodeTemplate.Get("__NodeTemplate__");
         ResourceInstance<ControlTemplate> _NodeTemplate = new ResourceInstance<ControlTemplate>();
 
         ControlTemplate GroupNodeTemplate => _GroupNodeTemplate.Get("__GroupNodeTemplate__");
-        ResourceInstance<ControlTemplate> _GroupNodeTemplate = new ResourceInstance<ControlTemplate>();
+        ResourceInstance<ControlTemplate> _GroupNodeTemplate =
+            new ResourceInstance<ControlTemplate>();
 
         Style NodeLinkAnimationStyle => _NodeLinkAnimationStyle.Get("__NodeLinkAnimationStyle__");
         ResourceInstance<Style> _NodeLinkAnimationStyle = new ResourceInstance<Style>();
@@ -242,7 +370,8 @@ namespace NodeGraph.NET6.Controls
         Point _DragStartPointToSelect = new Point();
 
         readonly List<NodeBase> _DraggingNodes = new List<NodeBase>();
-        readonly HashSet<NodeConnectorContent> _PreviewedConnectors = new HashSet<NodeConnectorContent>();
+        readonly HashSet<NodeConnectorContent> _PreviewedConnectors =
+            new HashSet<NodeConnectorContent>();
 
         readonly List<object> _DelayToBindNodeVMs = new List<object>();
         readonly List<object> _DelayToBindNodeLinkVMs = new List<object>();
@@ -271,7 +400,10 @@ namespace NodeGraph.NET6.Controls
             }
         }
 
-        static void NodeLinkStylePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        static void NodeLinkStylePropertyChanged(
+            DependencyObject d,
+            DependencyPropertyChangedEventArgs e
+        )
         {
             if (e.NewValue != null)
             {
@@ -292,7 +424,10 @@ namespace NodeGraph.NET6.Controls
             }
         }
 
-        static void NodeLinksPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        static void NodeLinksPropertyChanged(
+            DependencyObject d,
+            DependencyPropertyChangedEventArgs e
+        )
         {
             var nodeGraph = d as NodeGraph;
 
@@ -304,10 +439,14 @@ namespace NodeGraph.NET6.Controls
                 newValue,
                 nodeGraph.NodeLinkCollectionChanged,
                 nodeGraph._DelayToBindNodeLinkVMs,
-                nodeGraph.AddNodeLinksToCanvas);
+                nodeGraph.AddNodeLinksToCanvas
+            );
         }
 
-        static void GroupNodesPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        static void GroupNodesPropertyChanged(
+            DependencyObject d,
+            DependencyPropertyChangedEventArgs e
+        )
         {
             var nodeGraph = d as NodeGraph;
 
@@ -319,7 +458,8 @@ namespace NodeGraph.NET6.Controls
                 newValue,
                 nodeGraph.GroupNodeCollectionChanged,
                 nodeGraph._DelayToBindGroupNodeVMs,
-                nodeGraph.AddGroupNodesToCanvas);
+                nodeGraph.AddGroupNodesToCanvas
+            );
         }
 
         static void CollectionPropertyChanged<T>(
@@ -328,7 +468,9 @@ namespace NodeGraph.NET6.Controls
             IEnumerable newValue,
             NotifyCollectionChangedEventHandler collectionChanged,
             List<object> delayToBindVMs,
-            Action<object[]> addElementToCanvas) where T : UIElement, ICanvasObject
+            Action<object[]> addElementToCanvas
+        )
+            where T : UIElement, ICanvasObject
         {
             if (oldValue != null && oldValue is INotifyCollectionChanged oldCollection)
             {
@@ -365,14 +507,20 @@ namespace NodeGraph.NET6.Controls
             }
         }
 
-        static void AllowToOverrideConnectionPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        static void AllowToOverrideConnectionPropertyChanged(
+            DependencyObject d,
+            DependencyPropertyChangedEventArgs e
+        )
         {
             NodeInputContent.AllowToOverrideConnection = (bool)e.NewValue;
         }
 
         static NodeGraph()
         {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof(NodeGraph), new FrameworkPropertyMetadata(typeof(NodeGraph)));
+            DefaultStyleKeyProperty.OverrideMetadata(
+                typeof(NodeGraph),
+                new FrameworkPropertyMetadata(typeof(NodeGraph))
+            );
         }
 
         public Point GetDragNodePosition(MouseEventArgs e)
@@ -415,7 +563,8 @@ namespace NodeGraph.NET6.Controls
                 newValue,
                 NodeCollectionChanged,
                 _DelayToBindNodeVMs,
-                AddNodesToCanvas);
+                AddNodesToCanvas
+            );
         }
 
         protected override void OnKeyDown(KeyEventArgs e)
@@ -438,7 +587,10 @@ namespace NodeGraph.NET6.Controls
         protected override void OnMouseWheel(MouseWheelEventArgs e)
         {
             base.OnMouseWheel(e);
-            if (ScaleWithKey == Key.None || (Keyboard.GetKeyStates(ScaleWithKey) & KeyStates.Down) != 0)
+            if (
+                ScaleWithKey == Key.None
+                || (Keyboard.GetKeyStates(ScaleWithKey) & KeyStates.Down) != 0
+            )
             {
                 var s = Scale + (e.Delta > 0 ? +ScaleRate : -ScaleRate);
                 Scale = Math.Max(MinScale, s);
@@ -455,7 +607,9 @@ namespace NodeGraph.NET6.Controls
             {
                 var offsetPosOnCanvasX = posOnCanvas.X - Offset.X;
                 var offsetPosOnCanvasY = posOnCanvas.Y - Offset.Y;
-                var canvasMouseEventArgs = new CanvasMouseEventArgs(new Point(offsetPosOnCanvasX, offsetPosOnCanvasY));
+                var canvasMouseEventArgs = new CanvasMouseEventArgs(
+                    new Point(offsetPosOnCanvasX, offsetPosOnCanvasY)
+                );
 
                 if (PreviewDropOnCanvasCommand.CanExecute(canvasMouseEventArgs))
                 {
@@ -474,7 +628,9 @@ namespace NodeGraph.NET6.Controls
             {
                 var offsetPosOnCanvasX = posOnCanvas.X - Offset.X;
                 var offsetPosOnCanvasY = posOnCanvas.Y - Offset.Y;
-                var canvasMouseEventArgs = new CanvasMouseEventArgs(new Point(offsetPosOnCanvasX, offsetPosOnCanvasY));
+                var canvasMouseEventArgs = new CanvasMouseEventArgs(
+                    new Point(offsetPosOnCanvasX, offsetPosOnCanvasY)
+                );
 
                 if (MouseMoveOnCanvasCommand.CanExecute(canvasMouseEventArgs))
                 {
@@ -490,13 +646,19 @@ namespace NodeGraph.NET6.Controls
                     {
                         // If dragging node is already selected, selected nodes move with dragging.
                         // In this case, these were selected by Ctrl+Click each nodes.
-                        foreach (var node in Canvas.Children.OfType<NodeBase>().Where(arg => arg != _DraggingNodes[0] && arg.IsSelected))
+                        foreach (
+                            var node in Canvas
+                                .Children.OfType<NodeBase>()
+                                .Where(arg => arg != _DraggingNodes[0] && arg.IsSelected)
+                        )
                         {
                             node.CaptureDragStartPosition();
                             _DraggingNodes.Add(node);
                         }
 
-                        var args = new BeginMoveNodesOperationEventArgs(_DraggingNodes.Select(arg => arg.Guid).ToArray());
+                        var args = new BeginMoveNodesOperationEventArgs(
+                            _DraggingNodes.Select(arg => arg.Guid).ToArray()
+                        );
                         BeginMoveNodesCommand?.Execute(args);
                     }
                     else
@@ -519,7 +681,10 @@ namespace NodeGraph.NET6.Controls
                     }
 
                     var draggingGroupNodes = _DraggingNodes.OfType<GroupNode>().ToArray();
-                    var movingNodeTargets = Canvas.Children.OfType<NodeBase>().Where(arg => draggingGroupNodes.Contains(arg) == false).ToArray();
+                    var movingNodeTargets = Canvas
+                        .Children.OfType<NodeBase>()
+                        .Where(arg => draggingGroupNodes.Contains(arg) == false)
+                        .ToArray();
                     foreach (var target in movingNodeTargets)
                     {
                         var target_bb = target.GetBoundingBox();
@@ -537,7 +702,10 @@ namespace NodeGraph.NET6.Controls
                 }
 
                 var current = e.GetPosition(Canvas);
-                var diff = new Point(current.X - _DragStartPointToMoveNode.X, current.Y - _DragStartPointToMoveNode.Y);
+                var diff = new Point(
+                    current.X - _DragStartPointToMoveNode.X,
+                    current.Y - _DragStartPointToMoveNode.Y
+                );
 
                 foreach (var node in _DraggingNodes)
                 {
@@ -546,10 +714,12 @@ namespace NodeGraph.NET6.Controls
                     node.UpdatePosition(x, y);
                 }
 
-                {   // change group node innter color if node inside.
+                { // change group node innter color if node inside.
                     var groupNodes = Canvas.Children.OfType<GroupNode>().ToArray();
                     var draggingGroupNodes = _DraggingNodes.OfType<GroupNode>().ToArray();
-                    var boundingBoxes = _DraggingNodes.Select(arg => arg.GetBoundingBox()).ToArray();
+                    var boundingBoxes = _DraggingNodes
+                        .Select(arg => arg.GetBoundingBox())
+                        .ToArray();
                     foreach (var groupNode in groupNodes)
                     {
                         if (draggingGroupNodes.Contains(groupNode))
@@ -563,13 +733,17 @@ namespace NodeGraph.NET6.Controls
                         {
                             case GroupIntersectType.CursorPoint:
                                 {
-                                    isInsideNode = groupNode.IsInsideCompletely(current.Sub(Offset));
+                                    isInsideNode = groupNode.IsInsideCompletely(
+                                        current.Sub(Offset)
+                                    );
                                 }
                                 break;
                             case GroupIntersectType.BoundingBox:
                                 {
                                     var groupBoundingBox = groupNode.GetInnerBoundingBox();
-                                    isInsideNode = boundingBoxes.Any(arg => groupBoundingBox.IntersectsWith(arg));
+                                    isInsideNode = boundingBoxes.Any(arg =>
+                                        groupBoundingBox.IntersectsWith(arg)
+                                    );
                                 }
                                 break;
                             default:
@@ -581,7 +755,10 @@ namespace NodeGraph.NET6.Controls
             }
             else if (_PressedMouseToMove && (MoveWithKey == Key.None || _PressedKeyToMove))
             {
-                var delta = new Vector(posOnCanvas.X - _DragStartPointToMoveOffset.X, posOnCanvas.Y - _DragStartPointToMoveOffset.Y);
+                var delta = new Vector(
+                    posOnCanvas.X - _DragStartPointToMoveOffset.X,
+                    posOnCanvas.Y - _DragStartPointToMoveOffset.Y
+                );
                 if (delta.Length > DEADLENGTH_FOR_DRAGGING_MOVE)
                 {
                     var x = _CaptureOffset.X + delta.X;
@@ -606,17 +783,24 @@ namespace NodeGraph.NET6.Controls
                 BeginSelectionChanging();
 
                 bool anyIntersects = false;
-                Rect selectingRangeRect = new Rect(_DragStartPointToSelect.Sub(Offset), posOnCanvas.Sub(Offset));
+                Rect selectingRangeRect = new Rect(
+                    _DragStartPointToSelect.Sub(Offset),
+                    posOnCanvas.Sub(Offset)
+                );
 
                 foreach (var selectableObject in Canvas.Children.OfType<ISelectableObject>())
                 {
                     switch (RangeSelectionMdoe)
                     {
                         case RangeSelectionMode.Contain:
-                            selectableObject.IsSelected = selectableObject.Contains(selectingRangeRect);
+                            selectableObject.IsSelected = selectableObject.Contains(
+                                selectingRangeRect
+                            );
                             break;
                         case RangeSelectionMode.Intersect:
-                            selectableObject.IsSelected = selectableObject.IntersectsWith(selectingRangeRect);
+                            selectableObject.IsSelected = selectableObject.IntersectsWith(
+                                selectingRangeRect
+                            );
                             break;
                     }
 
@@ -640,11 +824,19 @@ namespace NodeGraph.NET6.Controls
         {
             _PressedRightBotton = e.RightButton == MouseButtonState.Pressed;
 
+            if (_PressedRightBotton)
+            {
+                RightClickPoint = e.GetPosition(Canvas);
+            }
+
             base.OnMouseDown(e);
 
             var posOnCanvas = e.GetPosition(Canvas);
 
-            if (e.LeftButton == MouseButtonState.Pressed && (MoveWithKey == Key.None || Keyboard.GetKeyStates(MoveWithKey) != KeyStates.Down))
+            if (
+                e.LeftButton == MouseButtonState.Pressed
+                && (MoveWithKey == Key.None || Keyboard.GetKeyStates(MoveWithKey) != KeyStates.Down)
+            )
             {
                 // start to select by range rect.
                 _PressedMouseToSelect = true;
@@ -654,7 +846,11 @@ namespace NodeGraph.NET6.Controls
             }
 
             // it is able to offset only in state of not operating anything.
-            if (_DraggingNodes.Count == 0 && _DraggingNodeLinkParam == null && _PressedMouseToSelect == false)
+            if (
+                _DraggingNodes.Count == 0
+                && _DraggingNodeLinkParam == null
+                && _PressedMouseToSelect == false
+            )
             {
                 UpdateMouseMoveState(e);
             }
@@ -694,7 +890,10 @@ namespace NodeGraph.NET6.Controls
 
             _PressedMouseToSelect = false;
 
-            if (Canvas.Children.OfType<ISelectableObject>().Any(arg => arg.IsSelected) && _IsRangeSelecting == false)
+            if (
+                Canvas.Children.OfType<ISelectableObject>().Any(arg => arg.IsSelected)
+                && _IsRangeSelecting == false
+            )
             {
                 // click empty area to unselect nodes.
                 BeginSelectionChanging();
@@ -758,7 +957,9 @@ namespace NodeGraph.NET6.Controls
                 case MouseButton.Left:
                     if (MoveWithKey == Key.None)
                     {
-                        throw new InvalidProgramException("Not allow combination that no set MoveWithKey(Key.None) and left click.");
+                        throw new InvalidProgramException(
+                            "Not allow combination that no set MoveWithKey(Key.None) and left click."
+                        );
                     }
 
                     if (Keyboard.GetKeyStates(MoveWithKey) == KeyStates.Down)
@@ -783,7 +984,13 @@ namespace NodeGraph.NET6.Controls
             {
                 var inputNode = nodeLink.Input.Node;
                 var outputNode = nodeLink.Output.Node;
-                var args = new DisconnectedLinkOperationEventArgs(nodeLink.Guid, nodeLink.OutputConnectorGuid, outputNode.Guid, nodeLink.InputConnectorGuid, inputNode.Guid);
+                var args = new DisconnectedLinkOperationEventArgs(
+                    nodeLink.Guid,
+                    nodeLink.OutputConnectorGuid,
+                    outputNode.Guid,
+                    nodeLink.InputConnectorGuid,
+                    inputNode.Guid
+                );
                 DisconnectedLinkCommand?.Execute(args);
             }
 
@@ -810,36 +1017,65 @@ namespace NodeGraph.NET6.Controls
 
             Cursor = Cursors.Cross;
 
-            VisualTreeHelper.HitTest(Canvas, null, new HitTestResultCallback(arg =>
-            {
-                var element = arg.VisualHit as FrameworkElement;
-                if (element != null && element.Tag is NodeConnectorContent toConnector)
+            VisualTreeHelper.HitTest(
+                Canvas,
+                null,
+                new HitTestResultCallback(arg =>
                 {
-                    if (param.StartConnector != toConnector && param.NodeLink.ToEndConnector != toConnector)
+                    var element = arg.VisualHit as FrameworkElement;
+                    if (element != null && element.Tag is NodeConnectorContent toConnector)
                     {
-                        PreviewConnect(param.StartConnector, toConnector);
-                        _PreviewedConnectors.Add(toConnector);
+                        if (
+                            param.StartConnector != toConnector
+                            && param.NodeLink.ToEndConnector != toConnector
+                        )
+                        {
+                            PreviewConnect(param.StartConnector, toConnector);
+                            _PreviewedConnectors.Add(toConnector);
 
-                        return HitTestResultBehavior.Stop;
+                            return HitTestResultBehavior.Stop;
+                        }
                     }
-                }
-                return HitTestResultBehavior.Continue;
-            }), new PointHitTestParameters(pos));
+                    return HitTestResultBehavior.Continue;
+                }),
+                new PointHitTestParameters(pos)
+            );
         }
 
         void NodeCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            CollectionChanged<DefaultNode>(e.Action, e.OldItems, e.NewItems, RemoveNodesFromCanvas, RemoveNodesFromCanvas, AddNodesToCanvas);
+            CollectionChanged<DefaultNode>(
+                e.Action,
+                e.OldItems,
+                e.NewItems,
+                RemoveNodesFromCanvas,
+                RemoveNodesFromCanvas,
+                AddNodesToCanvas
+            );
         }
 
         void GroupNodeCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            CollectionChanged<GroupNode>(e.Action, e.OldItems, e.NewItems, RemoveGroupNodesFromCanvas, RemoveGroupNodesFromCanvas, AddGroupNodesToCanvas);
+            CollectionChanged<GroupNode>(
+                e.Action,
+                e.OldItems,
+                e.NewItems,
+                RemoveGroupNodesFromCanvas,
+                RemoveGroupNodesFromCanvas,
+                AddGroupNodesToCanvas
+            );
         }
 
         void NodeLinkCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            CollectionChanged<NodeLink>(e.Action, e.OldItems, e.NewItems, RemoveNodeLinksFromCanvas, RemoveNodeLinksFromCanvas, AddNodeLinksToCanvas);
+            CollectionChanged<NodeLink>(
+                e.Action,
+                e.OldItems,
+                e.NewItems,
+                RemoveNodeLinksFromCanvas,
+                RemoveNodeLinksFromCanvas,
+                AddNodeLinksToCanvas
+            );
         }
 
         void CollectionChanged<T>(
@@ -848,7 +1084,9 @@ namespace NodeGraph.NET6.Controls
             IList newItems,
             Action<object[]> removeItemWithDataContext,
             Action<T[]> removeItemDirectly,
-            Action<object[]> addItemWithDataContext) where T : UIElement, ICanvasObject
+            Action<object[]> addItemWithDataContext
+        )
+            where T : UIElement, ICanvasObject
         {
             switch (action)
             {
@@ -911,10 +1149,7 @@ namespace NodeGraph.NET6.Controls
 
             foreach (var vm in addVMs)
             {
-                var nodeLink = new NodeLink(Canvas, Scale, Offset)
-                {
-                    DataContext = vm,
-                };
+                var nodeLink = new NodeLink(Canvas, Scale, Offset) { DataContext = vm };
 
                 nodeLink.Style = NodeLinkStyle ?? NodeLinkAnimationStyle;
 
@@ -923,12 +1158,20 @@ namespace NodeGraph.NET6.Controls
                 var nodeLinks = Canvas.Children.OfType<NodeLink>().ToArray();
                 if (nodeLinks.Any(arg => arg.Guid == nodeLink.Guid))
                 {
-                    throw new InvalidOperationException($"Already exists adding node link. Guid = {nodeLink.Guid}");
+                    throw new InvalidOperationException(
+                        $"Already exists adding node link. Guid = {nodeLink.Guid}"
+                    );
                 }
 
                 var nodes = Canvas.Children.OfType<DefaultNode>().ToArray();
-                var nodeInput = FindConnectorContentInNodes<NodeInputContent>(nodes, nodeLink.InputConnectorGuid);
-                var nodeOutput = FindConnectorContentInNodes<NodeOutputContent>(nodes, nodeLink.OutputConnectorGuid);
+                var nodeInput = FindConnectorContentInNodes<NodeInputContent>(
+                    nodes,
+                    nodeLink.InputConnectorGuid
+                );
+                var nodeOutput = FindConnectorContentInNodes<NodeOutputContent>(
+                    nodes,
+                    nodeLink.OutputConnectorGuid
+                );
 
                 nodeInput.Connect(nodeLink);
                 nodeOutput.Connect(nodeLink);
@@ -1047,7 +1290,8 @@ namespace NodeGraph.NET6.Controls
             }
         }
 
-        T FindConnectorContentInNodes<T>(DefaultNode[] nodes, Guid guid) where T : NodeConnectorContent
+        T FindConnectorContentInNodes<T>(DefaultNode[] nodes, Guid guid)
+            where T : NodeConnectorContent
         {
             foreach (var node in nodes)
             {
@@ -1075,7 +1319,12 @@ namespace NodeGraph.NET6.Controls
         {
             if (start.CanConnectTo(toEnd) && toEnd.CanConnectTo(start))
             {
-                var args = new PreviewConnectLinkOperationEventArgs(start.Node.Guid, start.Guid, toEnd.Node.Guid, toEnd.Guid);
+                var args = new PreviewConnectLinkOperationEventArgs(
+                    start.Node.Guid,
+                    start.Guid,
+                    toEnd.Node.Guid,
+                    toEnd.Guid
+                );
                 PreviewConnectLinkCommand?.Execute(args);
                 toEnd.CanConnect = args.CanConnect;
             }
@@ -1142,7 +1391,11 @@ namespace NodeGraph.NET6.Controls
 
         void NodeLink_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            if ((Keyboard.GetKeyStates(Key.LeftCtrl) & KeyStates.Down) == 0 || _IsStartDraggingNode || _IsRangeSelecting)
+            if (
+                (Keyboard.GetKeyStates(Key.LeftCtrl) & KeyStates.Down) == 0
+                || _IsStartDraggingNode
+                || _IsRangeSelecting
+            )
             {
                 // nothing process here if not key down ctrl or other conditions.
                 return;
@@ -1217,7 +1470,14 @@ namespace NodeGraph.NET6.Controls
                 // clicked on the connector
                 var posOnCanvas = connector.GetContentPosition(Canvas);
 
-                var nodeLink = new NodeLink(connector, posOnCanvas.X, posOnCanvas.Y, Canvas, Scale, Offset)
+                var nodeLink = new NodeLink(
+                    connector,
+                    posOnCanvas.X,
+                    posOnCanvas.Y,
+                    Canvas,
+                    Scale,
+                    Offset
+                )
                 {
                     DataContext = null,
                 };
@@ -1268,7 +1528,8 @@ namespace NodeGraph.NET6.Controls
             }
         }
 
-        void UpdateNodeSelectionItem<T>(T item) where T : ISelectableObject
+        void UpdateNodeSelectionItem<T>(T item)
+            where T : ISelectableObject
         {
             BeginSelectionChanging();
 
@@ -1300,7 +1561,9 @@ namespace NodeGraph.NET6.Controls
 
             _DraggingNodes.Add(node);
 
-            var args = new BeginMoveNodesOperationEventArgs(_DraggingNodes.Select(arg => arg.Guid).ToArray());
+            var args = new BeginMoveNodesOperationEventArgs(
+                _DraggingNodes.Select(arg => arg.Guid).ToArray()
+            );
             BeginMoveNodesCommand?.Execute(args);
 
             _DragStartPointToMoveNode = pos;
@@ -1323,7 +1586,8 @@ namespace NodeGraph.NET6.Controls
             }
         }
 
-        void UpdateSelectedItems<T>(T item) where T : ISelectableObject
+        void UpdateSelectedItems<T>(T item)
+            where T : ISelectableObject
         {
             if (SelectedItems.Contains(item.DataContext))
             {
@@ -1347,27 +1611,38 @@ namespace NodeGraph.NET6.Controls
             {
                 return;
             }
-            var args = new EndMoveNodesOperationEventArgs(_DraggingNodes.Select(arg => arg.Guid).ToArray());
+            var args = new EndMoveNodesOperationEventArgs(
+                _DraggingNodes.Select(arg => arg.Guid).ToArray()
+            );
             EndMoveNodesCommand?.Execute(args);
 
             // expand the group node area size if node within group.
-            var groupNodes = Canvas.Children.OfType<GroupNode>().Where(arg => _DraggingNodes.Contains(arg) == false).ToArray();
+            var groupNodes = Canvas
+                .Children.OfType<GroupNode>()
+                .Where(arg => _DraggingNodes.Contains(arg) == false)
+                .ToArray();
 
             var isInsideAtLeastOneNode = false;
             switch (GroupIntersectType)
             {
                 case GroupIntersectType.CursorPoint:
-                    {
-                        var cursor_bb = new Rect(e.GetPosition(Canvas).Sub(Offset), new Size(1, 1));
-                        isInsideAtLeastOneNode = groupNodes.Any(arg => cursor_bb.IntersectsWith(arg.GetBoundingBox()));
-                        break;
-                    }
+                {
+                    var cursor_bb = new Rect(e.GetPosition(Canvas).Sub(Offset), new Size(1, 1));
+                    isInsideAtLeastOneNode = groupNodes.Any(arg =>
+                        cursor_bb.IntersectsWith(arg.GetBoundingBox())
+                    );
+                    break;
+                }
                 case GroupIntersectType.BoundingBox:
-                    {
-                        var groupBoundingBoxes = groupNodes.Select(arg => arg.GetInnerBoundingBox()).ToArray();
-                        isInsideAtLeastOneNode = _DraggingNodes.Any(arg => groupBoundingBoxes.Any(bb => bb.IntersectsWith(arg.GetBoundingBox())));
-                        break;
-                    }
+                {
+                    var groupBoundingBoxes = groupNodes
+                        .Select(arg => arg.GetInnerBoundingBox())
+                        .ToArray();
+                    isInsideAtLeastOneNode = _DraggingNodes.Any(arg =>
+                        groupBoundingBoxes.Any(bb => bb.IntersectsWith(arg.GetBoundingBox()))
+                    );
+                    break;
+                }
             }
 
             if (isInsideAtLeastOneNode)
@@ -1379,7 +1654,9 @@ namespace NodeGraph.NET6.Controls
                 var rect = new Rect(min_x, min_y, max_x - min_x, max_y - min_y);
 
                 // collect target of expand groups.
-                var targetGroupNodes = groupNodes.Where(arg => rect.IntersectsWith(arg.GetInnerBoundingBox())).ToArray();
+                var targetGroupNodes = groupNodes
+                    .Where(arg => rect.IntersectsWith(arg.GetInnerBoundingBox()))
+                    .ToArray();
                 foreach (var targetGroupNode in targetGroupNodes)
                 {
                     targetGroupNode.ExpandSize(rect);
@@ -1387,6 +1664,7 @@ namespace NodeGraph.NET6.Controls
             }
             _DraggingNodes.Clear();
         }
+
         void StartRangeSelecting()
         {
             if (_IsRangeSelecting)
@@ -1462,40 +1740,47 @@ namespace NodeGraph.NET6.Controls
                     switch (toEndConnector)
                     {
                         case NodeInputContent inputConnector:
-                            {
-                                input = inputConnector;
-                                output = (NodeOutputContent)_DraggingNodeLinkParam.StartConnector;
+                        {
+                            input = inputConnector;
+                            output = (NodeOutputContent)_DraggingNodeLinkParam.StartConnector;
 
-                                if (AllowToOverrideConnection && input.ConnectedCount > 0)
+                            if (AllowToOverrideConnection && input.ConnectedCount > 0)
+                            {
+                                // it has to disconnect previous connected node link.
+                                var nodeLinks = Canvas.Children.OfType<NodeLink>().ToArray();
+                                var disconnectNodeLink = nodeLinks.First(arg =>
+                                    arg.InputConnectorGuid == input.Guid
+                                );
+
+                                // but cannot disconnect if node link is locked.
+                                if (disconnectNodeLink.IsLocked)
                                 {
-                                    // it has to disconnect previous connected node link.
-                                    var nodeLinks = Canvas.Children.OfType<NodeLink>().ToArray();
-                                    var disconnectNodeLink = nodeLinks.First(arg => arg.InputConnectorGuid == input.Guid);
-
-                                    // but cannot disconnect if node link is locked.
-                                    if (disconnectNodeLink.IsLocked)
-                                    {
-                                        ClearPreviewingNodeLink();
-                                        ClearConnectingNodeLinkState();
-                                        return;
-                                    }
-                                    DisconnectNodeLink(disconnectNodeLink);
+                                    ClearPreviewingNodeLink();
+                                    ClearConnectingNodeLinkState();
+                                    return;
                                 }
-                                break;
+                                DisconnectNodeLink(disconnectNodeLink);
                             }
+                            break;
+                        }
                         case NodeOutputContent outputConnector:
-                            {
-                                output = outputConnector;
-                                input = (NodeInputContent)_DraggingNodeLinkParam.StartConnector;
-                                break;
-                            }
+                        {
+                            output = outputConnector;
+                            input = (NodeInputContent)_DraggingNodeLinkParam.StartConnector;
+                            break;
+                        }
                         default:
                             throw new InvalidCastException();
                     }
 
                     ClearPreviewingNodeLink();
 
-                    var args = new ConnectedLinkOperationEventArgs(output.Guid, output.Node.Guid, input.Guid, input.Node.Guid);
+                    var args = new ConnectedLinkOperationEventArgs(
+                        output.Guid,
+                        output.Node.Guid,
+                        input.Guid,
+                        input.Node.Guid
+                    );
                     ConnectedLinkCommand?.Execute(args);
 
                     connected = true;
