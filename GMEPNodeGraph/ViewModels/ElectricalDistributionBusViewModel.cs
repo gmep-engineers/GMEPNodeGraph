@@ -10,14 +10,8 @@ using MySql.Data.MySqlClient;
 
 namespace GMEPNodeGraph.ViewModels
 {
-  public class ElectricalMeterViewModel : DefaultNodeViewModel
+  public class ElectricalDistributionBusViewModel : DefaultNodeViewModel
   {
-    public bool HasCts
-    {
-      get => _HasCts;
-      set => RaisePropertyChangedIfSet(ref _HasCts, value);
-    }
-    bool _HasCts = false;
     public override IEnumerable<NodeConnectorViewModel> Inputs => _Inputs;
     readonly ObservableCollection<NodeInputViewModel> _Inputs =
       new ObservableCollection<NodeInputViewModel>();
@@ -26,24 +20,24 @@ namespace GMEPNodeGraph.ViewModels
     readonly ObservableCollection<NodeOutputViewModel> _Outputs =
       new ObservableCollection<NodeOutputViewModel>();
 
-    public ElectricalMeterViewModel(
+    public ElectricalDistributionBusViewModel(
       string Id,
       string NodeId,
-      bool HasCts,
+      int Amp,
       int StatusId,
       Point Position
     )
     {
-      Guid = Guid.Parse(NodeId);
       this.Id = Id;
-      this.Position = Position;
-      this.HasCts = HasCts;
+      Guid = Guid.Parse(NodeId);
+      this.Amp = Amp;
       this.StatusId = StatusId;
+      this.Position = Position;
       _Outputs.Add(new NodeOutputViewModel($"Output"));
       _Inputs.Add(new NodeInputViewModel($"Input", true));
-      CtsVisible = Visibility.Visible;
-      Name = "Meter";
-      NodeType = NodeType.Meter;
+      ServiceAmpVisible = Visibility.Visible;
+      Name = "Distribution Bus";
+      NodeType = NodeType.DistributionBus;
     }
 
     public override NodeConnectorViewModel FindConnector(Guid guid)
@@ -63,16 +57,16 @@ namespace GMEPNodeGraph.ViewModels
       List<MySqlCommand> commands = new List<MySqlCommand>();
       string query =
         @"
-        INSERT INTO electrical_meters
-        (id, parent_id, project_id, node_id, has_cts, status_id)
-        VALUES (@id, @projectId, @ampRatingId, @hasCts, @statusId)
+        INSERT INTO electrical_distribution_buses
+        (id, parent_id, project_id, node_id, amp_rating_id, status_id)
+        VALUES (@id, @projectId, @ampRatingId, @statusId)
         ";
       MySqlCommand createBreakerCommand = new MySqlCommand(query, db.Connection);
       createBreakerCommand.Parameters.AddWithValue("@id", Id);
       createBreakerCommand.Parameters.AddWithValue("@parentId", ParentId);
       createBreakerCommand.Parameters.AddWithValue("@nodeId", Guid.ToString());
       createBreakerCommand.Parameters.AddWithValue("@projectId", projectId);
-      createBreakerCommand.Parameters.AddWithValue("@hasCts", HasCts);
+      createBreakerCommand.Parameters.AddWithValue("@ampRatingId", PanelAmpRatingId);
       createBreakerCommand.Parameters.AddWithValue("@statusId", StatusId);
       commands.Add(createBreakerCommand);
       commands.Add(GetCreateNodeCommand(projectId, db));
@@ -84,15 +78,14 @@ namespace GMEPNodeGraph.ViewModels
       List<MySqlCommand> commands = new List<MySqlCommand>();
       string query =
         @"
-        UPDATE electrical_meters
-        SET parent_id = @parentId, has_cts = @hasCts, status_id = @statusId
+        UPDATE electrical_distribution_buses
+        SET parent_id = @parentId, amp_rating_id = @ampRatingId
         WHERE id = @id
         ";
       MySqlCommand updateBreakerCommand = new MySqlCommand(query, db.Connection);
       updateBreakerCommand.Parameters.AddWithValue("@id", Id);
       updateBreakerCommand.Parameters.AddWithValue("@parentId", ParentId);
-      updateBreakerCommand.Parameters.AddWithValue("@hasCts", HasCts);
-      updateBreakerCommand.Parameters.AddWithValue("@statusId", StatusId);
+      updateBreakerCommand.Parameters.AddWithValue("@ampRatingId", PanelAmpRatingId);
       commands.Add(updateBreakerCommand);
       commands.Add(GetUpdateNodeCommand(db));
       return commands;
@@ -103,7 +96,7 @@ namespace GMEPNodeGraph.ViewModels
       List<MySqlCommand> commands = new List<MySqlCommand>();
       string query =
         @"
-        DELETE FROM electrical_meters
+        DELETE FROM electrical_distribution_buses
         WHERE id = @id
         ";
       MySqlCommand deleteBreakerCommand = new MySqlCommand(query, db.Connection);

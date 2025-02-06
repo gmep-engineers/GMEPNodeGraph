@@ -23,6 +23,7 @@
             <MenuItem IsEnabled="{Binding ProjectLoaded}" Header="Add Distribution Breaker" Command="{Binding AddDistributionBreakerCommand}"/>
             <MenuItem IsEnabled="{Binding ProjectLoaded}" Header="Add Panel" Command="{Binding AddPanelCommand}"/>
             <MenuItem IsEnabled="{Binding ProjectLoaded}" Header="Add Panel Breaker" Command="{Binding AddPanelBreakerCommand}"/>
+            <MenuItem IsEnabled="{Binding ProjectLoaded}" Header="Add Transformer" Command="{Binding AddTransformerCommand}"/>
             <MenuItem IsEnabled="{Binding ProjectLoaded}" Header="Add Section" Command="{Binding AddGroupNodeCommand}"/>
             <MenuItem IsEnabled="{Binding ProjectLoaded}" Header="Remove Selected" Command="{Binding RemoveNodesCommand}"/>
         </ContextMenu>
@@ -78,7 +79,11 @@
                     <DataTemplate>
                         <StackPanel Margin="5 5" VerticalAlignment="Center">
                             <!-- put voltage and amperage dropdown here-->
-                            <CheckBox Foreground="#FFFFFF">Existing</CheckBox>
+                            <ComboBox Width="65">
+                                <ComboBoxItem>(N)</ComboBoxItem>
+                                <ComboBoxItem>(E)</ComboBoxItem>
+                                <ComboBoxItem>(R)</ComboBoxItem>
+                            </ComboBox>
                             <ComboBox Visibility="{Binding ServiceAmpVisible}">
                                 <ComboBoxItem>100A</ComboBoxItem>
                                 <ComboBoxItem>200A</ComboBoxItem>
@@ -150,6 +155,30 @@
                                 <ComboBoxItem>1P</ComboBoxItem>
                             </ComboBox>
                             <CheckBox Foreground="#FFF" Visibility="{Binding CtsVisible}">CTS</CheckBox>
+                            <CheckBox Foreground="#FFF" Visibility="{Binding FuseOnlyVisible}">Fuse Only</CheckBox>
+                            <ComboBox Width="135" Visibility="{Binding TransformerVoltageVisible}">
+                                <ComboBoxItem>480V-120/208V-3Φ</ComboBoxItem>
+                                <ComboBoxItem>208V-277/480V-3Φ</ComboBoxItem>
+                                <ComboBoxItem>480V-120/240V-3Φ</ComboBoxItem>
+                                <ComboBoxItem>240V-277/480V-3Φ</ComboBoxItem>
+                                <ComboBoxItem>240V-120/208V-3Φ</ComboBoxItem>
+                                <ComboBoxItem>208V-120/240V-3Φ</ComboBoxItem>
+                                <ComboBoxItem>240V-120/208V-1Φ</ComboBoxItem>
+                                <ComboBoxItem>208V-120/240V-1Φ</ComboBoxItem>
+                            </ComboBox>
+                            <ComboBox Width="95" Visibility="{Binding KvaVisible}">
+                                <ComboBoxItem>45 KVA</ComboBoxItem>
+                                <ComboBoxItem>75 KVA</ComboBoxItem>
+                                <ComboBoxItem>112.5 KVA</ComboBoxItem>
+                                <ComboBoxItem>225 KVA</ComboBoxItem>
+                                <ComboBoxItem>300 KVA</ComboBoxItem>
+                                <ComboBoxItem>500 KVA</ComboBoxItem>
+                                <ComboBoxItem>750 KVA</ComboBoxItem>
+                                <ComboBoxItem>1000 KVA</ComboBoxItem> 
+                                <ComboBoxItem>1500 KVA</ComboBoxItem>
+                                <ComboBoxItem>2000 KVA</ComboBoxItem>
+                                <ComboBoxItem>2500 KVA</ComboBoxItem> 
+                            </ComboBox>
                         </StackPanel>
                     </DataTemplate>
                 </Setter.Value>
@@ -216,7 +245,7 @@
             <Menu DockPanel.Dock="Top">
                 <MenuItem Header="_File">
                     <MenuItem Header="_Open" />
-                    <MenuItem Header="_Save" />
+                    <MenuItem Header="_Save" Command="{Binding SaveCommand}"/>
                     <MenuItem Header="_Close" />
                 </MenuItem>
                 <MenuItem Header="_Edit">

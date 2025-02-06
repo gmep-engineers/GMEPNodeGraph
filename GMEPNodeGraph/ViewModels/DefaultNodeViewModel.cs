@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -8,7 +9,11 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
+using GMEPNodeGraph.Utilities;
 using Livet;
+using Microsoft.Win32;
+using MySql.Data.MySqlClient;
+using Mysqlx.Crud;
 using NodeGraph.Utilities;
 
 namespace GMEPNodeGraph.ViewModels
@@ -27,6 +32,19 @@ namespace GMEPNodeGraph.ViewModels
     Relocated,
   }
 
+  public enum NodeType
+  {
+    Undefined,
+    Service,
+    Meter,
+    MainBreaker,
+    DistributionBus,
+    DistributionBreaker,
+    Panel,
+    PanelBreaker,
+    Transformer,
+  }
+
   public abstract class DefaultNodeViewModel : ViewModel, INodeViewModel
   {
     public string Name
@@ -35,6 +53,14 @@ namespace GMEPNodeGraph.ViewModels
       set => RaisePropertyChangedIfSet(ref _Name, value);
     }
     string _Name = string.Empty;
+
+    public NodeType NodeType
+    {
+      get => _NodeType;
+      set => RaisePropertyChangedIfSet(ref _NodeType, value);
+    }
+    NodeType _NodeType = NodeType.Undefined;
+
     public double Width
     {
       get => _Width;
@@ -123,6 +149,27 @@ namespace GMEPNodeGraph.ViewModels
     }
     Visibility _PoleVisible = Visibility.Collapsed;
 
+    public Visibility FuseOnlyVisible
+    {
+      get => _FuseOnlyVisible;
+      set => RaisePropertyChangedIfSet(ref _FuseOnlyVisible, value);
+    }
+    Visibility _FuseOnlyVisible = Visibility.Collapsed;
+
+    public Visibility TransformerVoltageVisible
+    {
+      get => _TransformerVoltageVisible;
+      set => RaisePropertyChangedIfSet(ref _TransformerVoltageVisible, value);
+    }
+    Visibility _TransformerVoltageVisible = Visibility.Collapsed;
+
+    public Visibility KvaVisible
+    {
+      get => _KvaVisible;
+      set => RaisePropertyChangedIfSet(ref _KvaVisible, value);
+    }
+    Visibility _KvaVisible = Visibility.Collapsed;
+
     public string Id
     {
       get => _Id;
@@ -136,13 +183,6 @@ namespace GMEPNodeGraph.ViewModels
       set => RaisePropertyChangedIfSet(ref _ParentId, value);
     }
     string _ParentId = string.Empty;
-
-    public Guid ParentGuid
-    {
-      get => _ParentGuid;
-      set => RaisePropertyChangedIfSet(ref _ParentGuid, value);
-    }
-    Guid _ParentGuid = Guid.NewGuid();
 
     public float PhaseA
     {
@@ -200,6 +240,13 @@ namespace GMEPNodeGraph.ViewModels
     }
     int _Amp = 0;
 
+    public int PanelAmpRatingId
+    {
+      get => _PanelAmpRatingId;
+      set => RaisePropertyChangedIfSet(ref _PanelAmpRatingId, value);
+    }
+    int _PanelAmpRatingId = 0;
+
     public int ParentDistance
     {
       get => _ParentDistance;
@@ -207,12 +254,12 @@ namespace GMEPNodeGraph.ViewModels
     }
     int _ParentDistance = 0;
 
-    public Status Status
+    public int StatusId
     {
-      get => _Status;
-      set => RaisePropertyChangedIfSet(ref _Status, value);
+      get => _StatusId;
+      set => RaisePropertyChangedIfSet(ref _StatusId, value);
     }
-    Status _Status = Status.New;
+    int _StatusId = 1;
 
     public ICommand SizeChangedCommand => _SizeChangedCommand.Get(SizeChanged);
     ViewModelCommandHandler<Size> _SizeChangedCommand = new ViewModelCommandHandler<Size>();
@@ -231,186 +278,61 @@ namespace GMEPNodeGraph.ViewModels
 
     public abstract NodeConnectorViewModel FindConnector(Guid guid);
 
+    public abstract List<MySqlCommand> Create(string projectId, GmepDatabase db);
+
+    public abstract List<MySqlCommand> Update(GmepDatabase db);
+
+    public abstract List<MySqlCommand> Delete(GmepDatabase db);
+
     void SizeChanged(Size newSize)
     {
       Width = newSize.Width;
       Height = newSize.Height;
     }
-  }
 
-  public class Meter : DefaultNodeViewModel
-  {
-    public string Body
+    public MySqlCommand GetCreateNodeCommand(string projectId, GmepDatabase db)
     {
-      get => _Body;
-      set => RaisePropertyChangedIfSet(ref _Body, value);
-    }
-    string _Body = string.Empty;
-
-    public override IEnumerable<NodeConnectorViewModel> Inputs => _Inputs;
-    readonly ObservableCollection<NodeInputViewModel> _Inputs =
-      new ObservableCollection<NodeInputViewModel>();
-
-    public override IEnumerable<NodeConnectorViewModel> Outputs => _Outputs;
-    readonly ObservableCollection<NodeOutputViewModel> _Outputs =
-      new ObservableCollection<NodeOutputViewModel>();
-
-    public Meter(Point position)
-    {
-      _Outputs.Add(new NodeOutputViewModel($"Output"));
-      _Inputs.Add(new NodeInputViewModel($"Input", true));
-      CtsVisible = Visibility.Visible;
-      Name = "Meter";
-      Position = position;
+      string query =
+        @"
+        INSERT INTO electrical_single_line_nodes
+        (id, project_id, loc_x, loc_y, input_connector_id, output_connector_id)
+        VALUES (@id, @projectId, @locX, @locY, @inputConnectorId, @outputConnectorId)
+        ";
+      MySqlCommand createNodeCommand = new MySqlCommand(query, db.Connection);
+      createNodeCommand.Parameters.AddWithValue("@id", Guid.ToString());
+      createNodeCommand.Parameters.AddWithValue("@projectId", projectId);
+      createNodeCommand.Parameters.AddWithValue("@locX", Position.X);
+      createNodeCommand.Parameters.AddWithValue("@locY", Position.Y);
+      createNodeCommand.Parameters.AddWithValue("@inputConnectorId", Inputs.First());
+      createNodeCommand.Parameters.AddWithValue("@outputConnectorId", Outputs.First());
+      return createNodeCommand;
     }
 
-    public override NodeConnectorViewModel FindConnector(Guid guid)
+    public MySqlCommand GetUpdateNodeCommand(GmepDatabase db)
     {
-      var input = Inputs.FirstOrDefault(arg => arg.Guid == guid);
-      if (input != null)
-      {
-        return input;
-      }
-
-      var output = Outputs.FirstOrDefault(arg => arg.Guid == guid);
-      return output;
-    }
-  }
-
-  public class MainBreaker : DefaultNodeViewModel
-  {
-    public string Body
-    {
-      get => _Body;
-      set => RaisePropertyChangedIfSet(ref _Body, value);
-    }
-    string _Body = string.Empty;
-
-    public override IEnumerable<NodeConnectorViewModel> Inputs => _Inputs;
-    readonly ObservableCollection<NodeInputViewModel> _Inputs =
-      new ObservableCollection<NodeInputViewModel>();
-
-    public override IEnumerable<NodeConnectorViewModel> Outputs => _Outputs;
-    readonly ObservableCollection<NodeOutputViewModel> _Outputs =
-      new ObservableCollection<NodeOutputViewModel>();
-
-    public MainBreaker(Point position)
-    {
-      _Outputs.Add(new NodeOutputViewModel($"Output"));
-      _Inputs.Add(new NodeInputViewModel($"Input", true));
-      ServiceAmpVisible = Visibility.Visible;
-      PoleVisible = Visibility.Visible;
-      Name = "Main Breaker";
-      Position = position;
+      string query =
+        @"
+        UPDATE electrical_single_line_nodes
+        SET loc_x = @locX, loc_y = @locY
+        WHERE id = @id
+        ";
+      MySqlCommand updateNodeCommand = new MySqlCommand(query, db.Connection);
+      updateNodeCommand.Parameters.AddWithValue("@id", Id);
+      updateNodeCommand.Parameters.AddWithValue("@locX", Position.X);
+      updateNodeCommand.Parameters.AddWithValue("@locY", Position.Y);
+      return updateNodeCommand;
     }
 
-    public override NodeConnectorViewModel FindConnector(Guid guid)
+    public MySqlCommand GetDeleteNodeCommand(GmepDatabase db)
     {
-      var input = Inputs.FirstOrDefault(arg => arg.Guid == guid);
-      if (input != null)
-      {
-        return input;
-      }
-
-      var output = Outputs.FirstOrDefault(arg => arg.Guid == guid);
-      return output;
-    }
-  }
-
-  public class ServiceFeeder : DefaultNodeViewModel
-  {
-    public string Body
-    {
-      get => _Body;
-      set => RaisePropertyChangedIfSet(ref _Body, value);
-    }
-    string _Body = string.Empty;
-
-    public override IEnumerable<NodeConnectorViewModel> Inputs => _Inputs;
-    readonly ObservableCollection<NodeInputViewModel> _Inputs =
-      new ObservableCollection<NodeInputViewModel>();
-
-    public override IEnumerable<NodeConnectorViewModel> Outputs => _Outputs;
-    readonly ObservableCollection<NodeOutputViewModel> _Outputs =
-      new ObservableCollection<NodeOutputViewModel>();
-
-    public ServiceFeeder(Point position)
-    {
-      _Outputs.Add(new NodeOutputViewModel($"Output"));
-      ServiceAmpVisible = Visibility.Visible;
-      VoltagePhaseVisible = Visibility.Visible;
-      Name = "Service Feeder";
-      Position = position;
-    }
-
-    public override NodeConnectorViewModel FindConnector(Guid guid)
-    {
-      return Outputs.FirstOrDefault(arg => arg.Guid == guid);
-    }
-  }
-
-  public class DistributionBreaker : DefaultNodeViewModel
-  {
-    public string Body
-    {
-      get => _Body;
-      set => RaisePropertyChangedIfSet(ref _Body, value);
-    }
-    string _Body = string.Empty;
-
-    public override IEnumerable<NodeConnectorViewModel> Inputs => _Inputs;
-    readonly ObservableCollection<NodeInputViewModel> _Inputs =
-      new ObservableCollection<NodeInputViewModel>();
-
-    public override IEnumerable<NodeConnectorViewModel> Outputs => _Outputs;
-    readonly ObservableCollection<NodeOutputViewModel> _Outputs =
-      new ObservableCollection<NodeOutputViewModel>();
-
-    public DistributionBreaker(Point position)
-    {
-      _Outputs.Add(new NodeOutputViewModel($"Output"));
-      _Inputs.Add(new NodeInputViewModel($"Input", true));
-      PanelBusAmpVisible = Visibility.Visible;
-      PoleVisible = Visibility.Visible;
-      Name = "Distribution Breaker";
-      Position = position;
-    }
-
-    public override NodeConnectorViewModel FindConnector(Guid guid)
-    {
-      return Inputs.FirstOrDefault(arg => arg.Guid == guid);
-    }
-  }
-
-  public class Bus : DefaultNodeViewModel
-  {
-    public string Body
-    {
-      get => _Body;
-      set => RaisePropertyChangedIfSet(ref _Body, value);
-    }
-    string _Body = string.Empty;
-
-    public override IEnumerable<NodeConnectorViewModel> Inputs => _Inputs;
-    readonly ObservableCollection<NodeInputViewModel> _Inputs =
-      new ObservableCollection<NodeInputViewModel>();
-
-    public override IEnumerable<NodeConnectorViewModel> Outputs => _Outputs;
-    readonly ObservableCollection<NodeOutputViewModel> _Outputs =
-      new ObservableCollection<NodeOutputViewModel>();
-
-    public Bus(Point position)
-    {
-      _Outputs.Add(new NodeOutputViewModel($"Output"));
-      _Inputs.Add(new NodeInputViewModel($"Input", true));
-      ServiceAmpVisible = Visibility.Visible;
-      Name = "Bus";
-      Position = position;
-    }
-
-    public override NodeConnectorViewModel FindConnector(Guid guid)
-    {
-      return Inputs.FirstOrDefault(arg => arg.Guid == guid);
+      string query =
+        @"
+        DELETE FROM electrical_single_line_nodes
+        WHERE id = @id
+        ";
+      MySqlCommand deleteNodeCommand = new MySqlCommand(query, db.Connection);
+      deleteNodeCommand.Parameters.AddWithValue("@id", Guid.ToString());
+      return deleteNodeCommand;
     }
   }
 }

@@ -12,18 +12,20 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Xml.Linq;
 using GMEPNodeGraph;
+using GMEPNodeGraph.Utilities;
+using MySql.Data.MySqlClient;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
 
 namespace GMEPNodeGraph.ViewModels
 {
   public class ElectricalPanelViewModel : DefaultNodeViewModel
   {
-    public string VoltageType
+    public int VoltageId
     {
-      get => _VoltageType;
-      set => RaisePropertyChangedIfSet(ref _VoltageType, value);
+      get => _VoltageId;
+      set => RaisePropertyChangedIfSet(ref _VoltageId, value);
     }
-    string _VoltageType = "120/208 3Φ";
+    int _VoltageId = 1;
 
     public bool IsMlo
     {
@@ -32,14 +34,14 @@ namespace GMEPNodeGraph.ViewModels
     }
     bool _IsMlo = true;
 
-    public int BusAmp
+    public int BusAmpRatingId
     {
       get => _BusAmp;
       set => RaisePropertyChangedIfSet(ref _BusAmp, value);
     }
     int _BusAmp = 0;
 
-    public int MainAmp
+    public int MainAmpRatingId
     {
       get => _MainAmp;
       set => RaisePropertyChangedIfSet(ref _MainAmp, value);
@@ -57,14 +59,13 @@ namespace GMEPNodeGraph.ViewModels
     public ElectricalPanelViewModel(
       string Id,
       string NodeId,
-      string NodeParentId,
       string Name,
-      string VoltageType,
-      int BusAmp,
-      int MainAmp,
+      int VoltageId,
+      int BusAmpRatingId,
+      int MainAmpRatingId,
       string ColorCode,
       bool IsMlo,
-      string Status,
+      int StatusId,
       Point Position
     )
     {
@@ -79,41 +80,99 @@ namespace GMEPNodeGraph.ViewModels
       this.Name = Name;
       this.Position = Position;
       this.IsMlo = IsMlo;
-      this.BusAmp = BusAmp;
+      this.BusAmpRatingId = BusAmpRatingId;
       this.ColorCode = ColorCode;
-      this.VoltageType = VoltageType;
+      this.VoltageId = VoltageId;
       this.Id = Id;
+      this.StatusId = StatusId;
       Guid = Guid.Parse(NodeId);
-      ParentGuid = Guid.Parse(NodeParentId);
-      this.MainAmp = MainAmp;
-      this.Status = ViewModels.Status.New;
-      if (Status == "EXISTING")
-      {
-        this.Status = ViewModels.Status.Existing;
-      }
-      if (Status == "RELOCATED")
-      {
-        this.Status = ViewModels.Status.Relocated;
-      }
+      this.MainAmpRatingId = MainAmpRatingId;
+      NodeType = NodeType.Panel;
     }
 
     public override NodeConnectorViewModel FindConnector(Guid guid)
     {
-      return Inputs.FirstOrDefault(arg => arg.Guid == guid);
+      var input = Inputs.FirstOrDefault(arg => arg.Guid == guid);
+      if (input != null)
+      {
+        return input;
+      }
+
+      var output = Outputs.FirstOrDefault(arg => arg.Guid == guid);
+      return output;
     }
 
-    private int _mainSize;
-    private bool _isMlo;
-    private int _distanceFromParent;
-    private int _aicRating;
+    public override List<MySqlCommand> Create(string projectId, GmepDatabase db)
+    {
+      List<MySqlCommand> commands = new List<MySqlCommand>();
+      string query =
+        @"
+        INSERT INTO electrical_panels
+        (id, parent_id, project_id, node_id, bus_amp_rating_id, main_amp_rating_id, is_mlo, voltage_id, color_code, name, status_id)
+        VALUES (@id, @projectId, @nodeId, @busAmpRatingId, @mainAmpRatingId, @isMlo, @voltageId, @colorCode, @name, @statusId)
+        ";
+      MySqlCommand createPanelCommand = new MySqlCommand(query, db.Connection);
+      createPanelCommand.Parameters.AddWithValue("@id", Id);
+      createPanelCommand.Parameters.AddWithValue("@parentId", ParentId);
+      createPanelCommand.Parameters.AddWithValue("@projectId", projectId);
+      createPanelCommand.Parameters.AddWithValue("@nodeId", Guid.ToString());
+      createPanelCommand.Parameters.AddWithValue("@busAmpRatingId", BusAmpRatingId);
+      createPanelCommand.Parameters.AddWithValue("@mainAmpRatingId", MainAmpRatingId);
+      createPanelCommand.Parameters.AddWithValue("@isMlo", IsMlo);
+      createPanelCommand.Parameters.AddWithValue("@voltageId", VoltageId);
+      createPanelCommand.Parameters.AddWithValue("@colorCode", ColorCode);
+      createPanelCommand.Parameters.AddWithValue("@name", Name);
+      createPanelCommand.Parameters.AddWithValue("@statusId", StatusId);
+      commands.Add(createPanelCommand);
+      commands.Add(GetCreateNodeCommand(projectId, db));
+      return commands;
+    }
 
-    private int _type;
-    private bool _powered;
-    private bool _isHiddenOnPlan;
+    public override List<MySqlCommand> Update(GmepDatabase db)
+    {
+      List<MySqlCommand> commands = new List<MySqlCommand>();
+      string query =
+        @"
+        UPDATE electrical_panels
+        SET
+        parent_id = @parentId,
+        bus_amp_rating_id = @busAmpRatingId,
+        main_amp_rating_id = @mainAmpRatingId,
+        is_mlo = @isMlo,
+        voltage_id = @voltageId,
+        color_code = @colorCode,
+        name = @name,
+        status_id = @statusId
+        WHERE id = @id
+        ";
+      MySqlCommand updatePanelCommand = new MySqlCommand(query, db.Connection);
+      updatePanelCommand.Parameters.AddWithValue("@id", Id);
+      updatePanelCommand.Parameters.AddWithValue("@parentId", ParentId);
+      updatePanelCommand.Parameters.AddWithValue("@busAmpRatingId", BusAmpRatingId);
+      updatePanelCommand.Parameters.AddWithValue("@mainAmpRatingId", MainAmpRatingId);
+      updatePanelCommand.Parameters.AddWithValue("@isMlo", IsMlo);
+      updatePanelCommand.Parameters.AddWithValue("@voltageId", VoltageId);
+      updatePanelCommand.Parameters.AddWithValue("@colorCode", ColorCode);
+      updatePanelCommand.Parameters.AddWithValue("@name", Name);
+      updatePanelCommand.Parameters.AddWithValue("@statusId", StatusId);
+      commands.Add(updatePanelCommand);
+      commands.Add(GetUpdateNodeCommand(db));
+      return commands;
+    }
 
-    public ObservableCollection<DefaultNodeViewModel> leftComponents { get; set; } =
-      new ObservableCollection<DefaultNodeViewModel>();
-    public ObservableCollection<DefaultNodeViewModel> rightComponents { get; set; } =
-      new ObservableCollection<DefaultNodeViewModel>();
+    public override List<MySqlCommand> Delete(GmepDatabase db)
+    {
+      List<MySqlCommand> commands = new List<MySqlCommand>();
+      string query =
+        @"
+        DELETE FROM electrical_panels
+        WHERE id = @id
+        ";
+      MySqlCommand deletePanelCommand = new MySqlCommand(query, db.Connection);
+      deletePanelCommand.Parameters.AddWithValue("@id", Id);
+      commands.Add(deletePanelCommand);
+      commands.Add(GetDeleteNodeCommand(db));
+      return commands;
+    }
   }
 }

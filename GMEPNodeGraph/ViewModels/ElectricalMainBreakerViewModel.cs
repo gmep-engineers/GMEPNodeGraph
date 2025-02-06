@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using GMEPNodeGraph.Utilities;
+using MySql.Data.MySqlClient;
 
 namespace GMEPNodeGraph.ViewModels
 {
@@ -41,12 +43,11 @@ namespace GMEPNodeGraph.ViewModels
     public ElectricalMainBreakerViewModel(
       string Id,
       string NodeId,
-      string NodeParentId,
       int Amp,
       int NumPoles,
       bool HasGroundFaultProtection,
       bool HasSurgeProtection,
-      string Status,
+      int StatusId,
       Point Position
     )
     {
@@ -56,21 +57,93 @@ namespace GMEPNodeGraph.ViewModels
       this.NumPoles = NumPoles;
       this.HasGroundFaultProtection = HasGroundFaultProtection;
       this.HasSurgeProtection = HasSurgeProtection;
-      this.Status = ViewModels.Status.New;
-      if (Status == "EXISTING")
-      {
-        this.Status = ViewModels.Status.Existing;
-      }
-      if (Status == "RELOCATED")
-      {
-        this.Status = ViewModels.Status.Relocated;
-      }
+      this.StatusId = StatusId;
       this.Position = Position;
+      _Outputs.Add(new NodeOutputViewModel($"Output"));
+      _Inputs.Add(new NodeInputViewModel($"Input", true));
+      ServiceAmpVisible = Visibility.Visible;
+      PoleVisible = Visibility.Visible;
+      Name = "Main Breaker";
+      NodeType = NodeType.MainBreaker;
     }
 
     public override NodeConnectorViewModel FindConnector(Guid guid)
     {
-      return Outputs.FirstOrDefault(arg => arg.Guid == guid);
+      var input = Inputs.FirstOrDefault(arg => arg.Guid == guid);
+      if (input != null)
+      {
+        return input;
+      }
+
+      var output = Outputs.FirstOrDefault(arg => arg.Guid == guid);
+      return output;
+    }
+
+    public override List<MySqlCommand> Create(string projectId, GmepDatabase db)
+    {
+      List<MySqlCommand> commands = new List<MySqlCommand>();
+      string query =
+        @"
+        INSERT INTO electrical_main_breakers
+        (id, parent_id, project_id, node_id, amp_rating_id, has_ground_fault_protection, has_surge_protection, num_poles, status_id)
+        VALUES (@id, @projectId, @ampRatingId, @hasGroundFaultProtection, @hasSurgeProtection, @numPoles, @statusId)
+        ";
+      MySqlCommand createBreakerCommand = new MySqlCommand(query, db.Connection);
+      createBreakerCommand.Parameters.AddWithValue("@id", Id);
+      createBreakerCommand.Parameters.AddWithValue("@parentId", ParentId);
+      createBreakerCommand.Parameters.AddWithValue("@nodeId", Guid.ToString());
+      createBreakerCommand.Parameters.AddWithValue("@projectId", projectId);
+      createBreakerCommand.Parameters.AddWithValue("@ampRatingId", PanelAmpRatingId);
+      createBreakerCommand.Parameters.AddWithValue(
+        "@hasGroundFaultProtection",
+        HasGroundFaultProtection
+      );
+      createBreakerCommand.Parameters.AddWithValue("@hasSurgeProtection", HasSurgeProtection);
+      createBreakerCommand.Parameters.AddWithValue("@numPoles", NumPoles);
+      createBreakerCommand.Parameters.AddWithValue("@statusId", StatusId);
+      commands.Add(createBreakerCommand);
+      commands.Add(GetCreateNodeCommand(projectId, db));
+      return commands;
+    }
+
+    public override List<MySqlCommand> Update(GmepDatabase db)
+    {
+      List<MySqlCommand> commands = new List<MySqlCommand>();
+      string query =
+        @"
+        UPDATE electrical_main_breakers
+        SET parent_id = @parentId, amp_rating_id = @ampRatingId, has_ground_fault_protection = @hasGroundFaultProtection, has_surge_protection = @hasSurgeProtection, num_poles = @numPoles, status_id = @statusId
+        WHERE id = @id
+        ";
+      MySqlCommand updateBreakerCommand = new MySqlCommand(query, db.Connection);
+      updateBreakerCommand.Parameters.AddWithValue("@id", Id);
+      updateBreakerCommand.Parameters.AddWithValue("@parentId", ParentId);
+      updateBreakerCommand.Parameters.AddWithValue("@ampRatingId", PanelAmpRatingId);
+      updateBreakerCommand.Parameters.AddWithValue(
+        "@hasGroundFaultProtection",
+        HasGroundFaultProtection
+      );
+      updateBreakerCommand.Parameters.AddWithValue("@hasSurgeProtection", HasSurgeProtection);
+      updateBreakerCommand.Parameters.AddWithValue("@numPoles", NumPoles);
+      updateBreakerCommand.Parameters.AddWithValue("@statusId", StatusId);
+      commands.Add(updateBreakerCommand);
+      commands.Add(GetUpdateNodeCommand(db));
+      return commands;
+    }
+
+    public override List<MySqlCommand> Delete(GmepDatabase db)
+    {
+      List<MySqlCommand> commands = new List<MySqlCommand>();
+      string query =
+        @"
+        DELETE FROM electrical_main_breakers
+        WHERE id = @id
+        ";
+      MySqlCommand deleteBreakerCommand = new MySqlCommand(query, db.Connection);
+      deleteBreakerCommand.Parameters.AddWithValue("@id", Id);
+      commands.Add(deleteBreakerCommand);
+      commands.Add(GetDeleteNodeCommand(db));
+      return commands;
     }
   }
 }

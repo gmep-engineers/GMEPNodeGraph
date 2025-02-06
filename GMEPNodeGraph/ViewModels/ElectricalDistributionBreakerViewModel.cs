@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -10,14 +11,20 @@ using MySql.Data.MySqlClient;
 
 namespace GMEPNodeGraph.ViewModels
 {
-  public class ElectricalMeterViewModel : DefaultNodeViewModel
+  public class ElectricalDistributionBreakerViewModel : DefaultNodeViewModel
   {
-    public bool HasCts
+    public int NumPoles
     {
-      get => _HasCts;
-      set => RaisePropertyChangedIfSet(ref _HasCts, value);
+      get => _NumPoles;
+      set => RaisePropertyChangedIfSet(ref _NumPoles, value);
     }
-    bool _HasCts = false;
+    int _NumPoles = 3;
+    public bool IsFuseOnly
+    {
+      get => _IsFuseOnly;
+      set => RaisePropertyChangedIfSet(ref _IsFuseOnly, value);
+    }
+    bool _IsFuseOnly = false;
     public override IEnumerable<NodeConnectorViewModel> Inputs => _Inputs;
     readonly ObservableCollection<NodeInputViewModel> _Inputs =
       new ObservableCollection<NodeInputViewModel>();
@@ -26,24 +33,28 @@ namespace GMEPNodeGraph.ViewModels
     readonly ObservableCollection<NodeOutputViewModel> _Outputs =
       new ObservableCollection<NodeOutputViewModel>();
 
-    public ElectricalMeterViewModel(
+    public ElectricalDistributionBreakerViewModel(
       string Id,
       string NodeId,
-      bool HasCts,
+      int PanelAmpRatingId,
+      int NumPoles,
+      bool IsFuseOnly,
       int StatusId,
       Point Position
     )
     {
-      Guid = Guid.Parse(NodeId);
       this.Id = Id;
+      Guid = Guid.Parse(NodeId);
+      this.PanelAmpRatingId = PanelAmpRatingId;
+      this.NumPoles = NumPoles;
+      this.IsFuseOnly = IsFuseOnly;
       this.Position = Position;
-      this.HasCts = HasCts;
       this.StatusId = StatusId;
       _Outputs.Add(new NodeOutputViewModel($"Output"));
       _Inputs.Add(new NodeInputViewModel($"Input", true));
-      CtsVisible = Visibility.Visible;
-      Name = "Meter";
-      NodeType = NodeType.Meter;
+      PanelBusAmpVisible = Visibility.Visible;
+      PoleVisible = Visibility.Visible;
+      NodeType = NodeType.DistributionBreaker;
     }
 
     public override NodeConnectorViewModel FindConnector(Guid guid)
@@ -63,16 +74,18 @@ namespace GMEPNodeGraph.ViewModels
       List<MySqlCommand> commands = new List<MySqlCommand>();
       string query =
         @"
-        INSERT INTO electrical_meters
-        (id, parent_id, project_id, node_id, has_cts, status_id)
-        VALUES (@id, @projectId, @ampRatingId, @hasCts, @statusId)
+        INSERT INTO electrical_distribution_breakers
+        (id, parent_id, project_id, node_id, amp_rating_id, num_poles, is_fuse_only, status_id)
+        VALUES (@id, @projectId, @ampRatingId, @numPoles, @isFuseOnly, @statusId)
         ";
       MySqlCommand createBreakerCommand = new MySqlCommand(query, db.Connection);
       createBreakerCommand.Parameters.AddWithValue("@id", Id);
       createBreakerCommand.Parameters.AddWithValue("@parentId", ParentId);
       createBreakerCommand.Parameters.AddWithValue("@nodeId", Guid.ToString());
       createBreakerCommand.Parameters.AddWithValue("@projectId", projectId);
-      createBreakerCommand.Parameters.AddWithValue("@hasCts", HasCts);
+      createBreakerCommand.Parameters.AddWithValue("@ampRatingId", PanelAmpRatingId);
+      createBreakerCommand.Parameters.AddWithValue("@numPoles", NumPoles);
+      createBreakerCommand.Parameters.AddWithValue("@isFuseOnly", IsFuseOnly);
       createBreakerCommand.Parameters.AddWithValue("@statusId", StatusId);
       commands.Add(createBreakerCommand);
       commands.Add(GetCreateNodeCommand(projectId, db));
@@ -84,14 +97,16 @@ namespace GMEPNodeGraph.ViewModels
       List<MySqlCommand> commands = new List<MySqlCommand>();
       string query =
         @"
-        UPDATE electrical_meters
-        SET parent_id = @parentId, has_cts = @hasCts, status_id = @statusId
+        UPDATE electrical_distribution_breakers
+        SET parent_id = @parentId, amp_rating_id = @ampRatingId, num_poles = @numPoles, is_fuse_only = @isFuseOnly, status_id = @statusId
         WHERE id = @id
         ";
       MySqlCommand updateBreakerCommand = new MySqlCommand(query, db.Connection);
       updateBreakerCommand.Parameters.AddWithValue("@id", Id);
       updateBreakerCommand.Parameters.AddWithValue("@parentId", ParentId);
-      updateBreakerCommand.Parameters.AddWithValue("@hasCts", HasCts);
+      updateBreakerCommand.Parameters.AddWithValue("@ampRatingId", PanelAmpRatingId);
+      updateBreakerCommand.Parameters.AddWithValue("@numPoles", NumPoles);
+      updateBreakerCommand.Parameters.AddWithValue("@isFuseOnly", IsFuseOnly);
       updateBreakerCommand.Parameters.AddWithValue("@statusId", StatusId);
       commands.Add(updateBreakerCommand);
       commands.Add(GetUpdateNodeCommand(db));
@@ -103,7 +118,7 @@ namespace GMEPNodeGraph.ViewModels
       List<MySqlCommand> commands = new List<MySqlCommand>();
       string query =
         @"
-        DELETE FROM electrical_meters
+        DELETE FROM electrical_distribution_breakers
         WHERE id = @id
         ";
       MySqlCommand deleteBreakerCommand = new MySqlCommand(query, db.Connection);

@@ -7,6 +7,8 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using GMEPNodeGraph.Utilities;
+using MySql.Data.MySqlClient;
 
 namespace GMEPNodeGraph.ViewModels
 {
@@ -19,12 +21,19 @@ namespace GMEPNodeGraph.ViewModels
     }
     string _Body = string.Empty;
 
-    public string VoltageType
+    public int VoltageId
     {
-      get => _VoltageType;
-      set => RaisePropertyChangedIfSet(ref _VoltageType, value);
+      get => _VoltageId;
+      set => RaisePropertyChangedIfSet(ref _VoltageId, value);
     }
-    string _VoltageType = "120/208 3Φ";
+    int _VoltageId = 1;
+
+    public int AmpRatingId
+    {
+      get => _AmpRatingId;
+      set => RaisePropertyChangedIfSet(ref _AmpRatingId, value);
+    }
+    int _AmpRatingId = 1;
 
     public override IEnumerable<NodeConnectorViewModel> Inputs => _Inputs;
     readonly ObservableCollection<NodeInputViewModel> _Inputs =
@@ -38,10 +47,10 @@ namespace GMEPNodeGraph.ViewModels
       string Id,
       string NodeId,
       string Name,
-      string VoltageType,
-      int Amp,
+      int VoltageId,
+      int AmpRatingId,
       string ColorCode,
-      string Status,
+      int StatusId,
       Point Position
     )
     {
@@ -52,23 +61,80 @@ namespace GMEPNodeGraph.ViewModels
       this.Id = Id;
       Guid = Guid.Parse(NodeId);
       this.Name = Name;
-      this.VoltageType = VoltageType;
-      this.Amp = Amp;
+      this.VoltageId = VoltageId;
+      this.AmpRatingId = AmpRatingId;
       this.ColorCode = ColorCode;
-      this.Status = ViewModels.Status.New;
-      if (Status == "EXISTING")
-      {
-        this.Status = ViewModels.Status.Existing;
-      }
-      if (Status == "RELOCATED")
-      {
-        this.Status = ViewModels.Status.Relocated;
-      }
+      this.StatusId = StatusId;
+      NodeType = NodeType.Service;
     }
 
     public override NodeConnectorViewModel FindConnector(Guid guid)
     {
       return Outputs.FirstOrDefault(arg => arg.Guid == guid);
+    }
+
+    public override List<MySqlCommand> Create(string projectId, GmepDatabase db)
+    {
+      List<MySqlCommand> commands = new List<MySqlCommand>();
+      string query =
+        @"
+        INSERT INTO electrical_services
+        (id, project_id, node_id, name, electrical_service_amp_rating_id, electrical_service_voltage_id, color_code, status_id)
+        VALUES (@id, @projectId, @nodeId, @name, @ampRatingId, @voltageId, @colorCode, @statusId)
+        ";
+      MySqlCommand createServiceCommand = new MySqlCommand(query, db.Connection);
+      createServiceCommand.Parameters.AddWithValue("@id", Id);
+      createServiceCommand.Parameters.AddWithValue("@nodeId", Guid.ToString());
+      createServiceCommand.Parameters.AddWithValue("@projectId", projectId);
+      createServiceCommand.Parameters.AddWithValue("@name", Name);
+      createServiceCommand.Parameters.AddWithValue("@ampRatingId", AmpRatingId);
+      createServiceCommand.Parameters.AddWithValue("@voltageId", VoltageId);
+      createServiceCommand.Parameters.AddWithValue("@colorCode", ColorCode);
+      createServiceCommand.Parameters.AddWithValue("@statusId", StatusId);
+      commands.Add(createServiceCommand);
+      commands.Add(GetCreateNodeCommand(projectId, db));
+      return commands;
+    }
+
+    public override List<MySqlCommand> Update(GmepDatabase db)
+    {
+      List<MySqlCommand> commands = new List<MySqlCommand>();
+      string query =
+        @"
+        UPDATE electrical_services
+        SET
+        electrical_service_amp_rating_id = @ampRatingId,
+        electrical_service_voltage_id = @voltageId,
+        color_code = @colorCode,
+        name = @name,
+        status_id = @statusId
+        WHERE id = @id
+        ";
+      MySqlCommand updatePanelCommand = new MySqlCommand(query, db.Connection);
+      updatePanelCommand.Parameters.AddWithValue("@id", Id);
+      updatePanelCommand.Parameters.AddWithValue("@ampRatingId", AmpRatingId);
+      updatePanelCommand.Parameters.AddWithValue("@voltageId", VoltageId);
+      updatePanelCommand.Parameters.AddWithValue("@colorCode", ColorCode);
+      updatePanelCommand.Parameters.AddWithValue("@name", Name);
+      updatePanelCommand.Parameters.AddWithValue("@statusId", StatusId);
+      commands.Add(updatePanelCommand);
+      commands.Add(GetUpdateNodeCommand(db));
+      return commands;
+    }
+
+    public override List<MySqlCommand> Delete(GmepDatabase db)
+    {
+      List<MySqlCommand> commands = new List<MySqlCommand>();
+      string query =
+        @"
+        DELETE FROM electrical_services
+        WHERE id = @id
+        ";
+      MySqlCommand deletePanelCommand = new MySqlCommand(query, db.Connection);
+      deletePanelCommand.Parameters.AddWithValue("@id", Id);
+      commands.Add(deletePanelCommand);
+      commands.Add(GetDeleteNodeCommand(db));
+      return commands;
     }
   }
 }

@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Emit;
+using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -15,6 +16,7 @@ using GMEPNodeGraph.ViewModels;
 using GMEPNodeGraph.Views;
 using Livet;
 using Livet.Commands;
+using MySql.Data.MySqlClient;
 using NodeGraph.NET6.Controls;
 using NodeGraph.NET6.Operation;
 using NodeGraph.Utilities;
@@ -35,6 +37,9 @@ namespace GMEPNodeGraph.ViewModels
 
   public class MainWindowViewModel : ViewModel
   {
+    Stack<Action> UndoActions = new Stack<Action>();
+    Stack<Action> RedoActions = new Stack<Action>();
+    Stack<Action> ExecutableRedoActions = new Stack<Action>();
     public string ProjectNo
     {
       get => _ProjectNo;
@@ -68,7 +73,7 @@ namespace GMEPNodeGraph.ViewModels
       get => _ProjectLoaded;
       set => RaisePropertyChangedIfSet(ref _ProjectLoaded, value);
     }
-    bool _ProjectLoaded = false;
+    bool _ProjectLoaded = true;
     public double Scale
     {
       get => _Scale;
@@ -89,6 +94,9 @@ namespace GMEPNodeGraph.ViewModels
       set => RaisePropertyChangedIfSet(ref _RightClickPoint, value);
     }
     Point _RightClickPoint = new Point();
+
+    Queue<MySqlCommand> CommandQueue = new Queue<MySqlCommand>();
+    GmepDatabase db = new GmepDatabase();
 
     public ViewModelCommand LoadProjectNodesCommand =>
       _LoadProjectNodesCommand.Get(LoadProjectNodes);
@@ -112,11 +120,23 @@ namespace GMEPNodeGraph.ViewModels
     public ViewModelCommand AddPanelCommand => _AddPanelCommand.Get(AddPanel);
     ViewModelCommandHandler _AddPanelCommand = new ViewModelCommandHandler();
 
+    public ViewModelCommand AddTransformerCommand => _AddTransformerCommand.Get(AddTransformer);
+    ViewModelCommandHandler _AddTransformerCommand = new ViewModelCommandHandler();
+
     public ViewModelCommand AddGroupNodeCommand => _AddGroupNodeCommand.Get(AddGroupNode);
     ViewModelCommandHandler _AddGroupNodeCommand = new ViewModelCommandHandler();
 
     public ViewModelCommand RemoveNodesCommand => _RemoveNodesCommand.Get(RemoveNodes);
     ViewModelCommandHandler _RemoveNodesCommand = new ViewModelCommandHandler();
+
+    public ViewModelCommand SaveCommand => _SaveCommand.Get(Save);
+    ViewModelCommandHandler _SaveCommand = new ViewModelCommandHandler();
+
+    public ViewModelCommand UndoCommand => _UndoCommand.Get(Undo);
+    ViewModelCommandHandler _UndoCommand = new ViewModelCommandHandler();
+
+    public ViewModelCommand RedoCommand => _RedoCommand.Get(Redo);
+    ViewModelCommandHandler _RedoCommand = new ViewModelCommandHandler();
 
     public ListenerCommand<PreviewConnectLinkOperationEventArgs> PreviewConnectLinkCommand =>
       _PreviewConnectLinkCommand.Get(PreviewConnect);
@@ -226,7 +246,24 @@ namespace GMEPNodeGraph.ViewModels
     void AddService()
     {
       Point p = new Point((RightClickPoint.X - (Offset.X)), (RightClickPoint.Y - (Offset.Y)));
-      _NodeViewModels.Add(new ServiceFeeder(p));
+      ElectricalServiceViewModel service = new ElectricalServiceViewModel(
+        Guid.NewGuid().ToString(),
+        Guid.NewGuid().ToString(),
+        "Service Feeder",
+        1,
+        100,
+        "#FFFFFFFF",
+        1,
+        p
+      );
+      _NodeViewModels.Add(service);
+      service.Create(ProjectId, db).ForEach(CommandQueue.Enqueue);
+      UndoActions.Push(() =>
+      {
+        _NodeViewModels.Remove(service);
+        service.Delete(db).ForEach(CommandQueue.Enqueue);
+      });
+      RedoActions.Push(AddService);
     }
 
     public void LoadService(ElectricalServiceViewModel electricalServiceViewModel)
@@ -237,57 +274,164 @@ namespace GMEPNodeGraph.ViewModels
     void AddMainBreaker()
     {
       Point p = new Point((RightClickPoint.X - (Offset.X)), (RightClickPoint.Y - (Offset.Y)));
-      _NodeViewModels.Add(new MainBreaker(p));
+      ElectricalMainBreakerViewModel mainBreaker = new ElectricalMainBreakerViewModel(
+        Guid.NewGuid().ToString(),
+        Guid.NewGuid().ToString(),
+        100,
+        3,
+        false,
+        false,
+        1,
+        p
+      );
+      _NodeViewModels.Add(mainBreaker);
+      mainBreaker.Create(ProjectId, db).ForEach(CommandQueue.Enqueue);
+      UndoActions.Push(() =>
+      {
+        _NodeViewModels.Remove(mainBreaker);
+        mainBreaker.Delete(db).ForEach(CommandQueue.Enqueue);
+      });
+      RedoActions.Push(AddMainBreaker);
     }
 
     void AddMeter()
     {
       Point p = new Point((RightClickPoint.X - (Offset.X)), (RightClickPoint.Y - (Offset.Y)));
-      _NodeViewModels.Add(new Meter(p));
+      ElectricalMeterViewModel meter = new ElectricalMeterViewModel(
+        Guid.NewGuid().ToString(),
+        Guid.NewGuid().ToString(),
+        false,
+        1,
+        p
+      );
+      _NodeViewModels.Add(meter);
+      meter.Create(ProjectId, db).ForEach(CommandQueue.Enqueue);
+      UndoActions.Push(() =>
+      {
+        _NodeViewModels.Remove(meter);
+        meter.Delete(db).ForEach(CommandQueue.Enqueue);
+      });
+      RedoActions.Push(AddMeter);
     }
 
     void AddBus()
     {
       Point p = new Point((RightClickPoint.X - (Offset.X)), (RightClickPoint.Y - (Offset.Y)));
-      _NodeViewModels.Add(new Bus(p));
+      ElectricalDistributionBusViewModel distributionBus = new ElectricalDistributionBusViewModel(
+        Guid.NewGuid().ToString(),
+        Guid.NewGuid().ToString(),
+        100,
+        1,
+        p
+      );
+      _NodeViewModels.Add(distributionBus);
+      distributionBus.Create(ProjectId, db).ForEach(CommandQueue.Enqueue);
+      UndoActions.Push(() =>
+      {
+        _NodeViewModels.Remove(distributionBus);
+        distributionBus.Delete(db).ForEach(CommandQueue.Enqueue);
+      });
+      RedoActions.Push(AddBus);
     }
 
     void AddPanel()
     {
       Point p = new Point((RightClickPoint.X - (Offset.X)), (RightClickPoint.Y - (Offset.Y)));
-      _NodeViewModels.Add(
-        new ElectricalPanelViewModel(
-          new Guid().ToString(),
-          new Guid().ToString(),
-          new Guid().ToString(),
-          "New Panel",
-          "120/208 3Φ",
-          100,
-          0,
-          "#FFFFFFFF",
-          true,
-          "NEW",
-          p
-        )
+      ElectricalPanelViewModel panel = new ElectricalPanelViewModel(
+        Guid.NewGuid().ToString(),
+        Guid.NewGuid().ToString(),
+        "New Panel",
+        1,
+        100,
+        0,
+        "#FFFFFFFF",
+        true,
+        1,
+        p
       );
+      _NodeViewModels.Add(panel);
+      panel.Create(ProjectId, db).ForEach(CommandQueue.Enqueue);
+      UndoActions.Push(() =>
+      {
+        _NodeViewModels.Remove(panel);
+        panel.Delete(db).ForEach(CommandQueue.Enqueue);
+      });
+      RedoActions.Push(AddPanel);
     }
 
     void AddDistributionBreaker()
     {
       Point p = new Point((RightClickPoint.X - (Offset.X)), (RightClickPoint.Y - (Offset.Y)));
-      _NodeViewModels.Add(new DistributionBreaker(p));
+      ElectricalDistributionBreakerViewModel distributionBreaker =
+        new ElectricalDistributionBreakerViewModel(
+          Guid.NewGuid().ToString(),
+          Guid.NewGuid().ToString(),
+          100,
+          3,
+          false,
+          1,
+          p
+        );
+      _NodeViewModels.Add(distributionBreaker);
+      distributionBreaker.Create(ProjectId, db).ForEach(CommandQueue.Enqueue);
+      UndoActions.Push(() =>
+      {
+        _NodeViewModels.Remove(distributionBreaker);
+        distributionBreaker.Delete(db).ForEach(CommandQueue.Enqueue);
+      });
+      RedoActions.Push(AddDistributionBreaker);
+    }
+
+    void AddTransformer()
+    {
+      Point p = new Point((RightClickPoint.X - (Offset.X)), (RightClickPoint.Y - (Offset.Y)));
+      ElectricalTransformerViewModel transformer = new ElectricalTransformerViewModel(
+        Guid.NewGuid().ToString(),
+        Guid.NewGuid().ToString(),
+        "Transformer",
+        1,
+        1,
+        "#FFFFFFFF",
+        1,
+        p
+      );
+      _NodeViewModels.Add(transformer);
+      transformer.Create(ProjectId, db).ForEach(CommandQueue.Enqueue);
+      UndoActions.Push(() =>
+      {
+        _NodeViewModels.Remove(transformer);
+        transformer.Delete(db).ForEach(CommandQueue.Enqueue);
+      });
+      RedoActions.Push(AddTransformer);
     }
 
     void AddPanelBreaker()
     {
       Point p = new Point((RightClickPoint.X - (Offset.X)), (RightClickPoint.Y - (Offset.Y)));
-      _NodeViewModels.Add(new DistributionBreaker(p) { Name = "Panel Breaker" });
+      ElectricalPanelBreakerViewModel panelBreaker = new ElectricalPanelBreakerViewModel(
+        Guid.NewGuid().ToString(),
+        Guid.NewGuid().ToString(),
+        1,
+        3,
+        1,
+        p
+      );
+      _NodeViewModels.Add(panelBreaker);
+      panelBreaker.Create(ProjectId, db).ForEach(CommandQueue.Enqueue);
+      UndoActions.Push(() =>
+      {
+        _NodeViewModels.Remove(panelBreaker);
+        panelBreaker.Delete(db).ForEach(CommandQueue.Enqueue);
+      });
+      RedoActions.Push(AddPanelBreaker);
     }
 
     void AddGroupNode()
     {
       Point p = new Point((RightClickPoint.X - (Offset.X)), (RightClickPoint.Y - (Offset.Y)));
-      _GroupNodeViewModels.Add(new GroupNodeViewModel(new Guid().ToString(), "Section", p, 50, 90));
+      _GroupNodeViewModels.Add(
+        new GroupNodeViewModel(Guid.NewGuid().ToString(), "Section", p, 500, 900)
+      );
     }
 
     void RemoveNodes()
@@ -295,6 +439,7 @@ namespace GMEPNodeGraph.ViewModels
       var removeNodes = _NodeViewModels.Where(arg => arg.IsSelected).ToArray();
       foreach (var removeNode in removeNodes)
       {
+        removeNode.Delete(db).ForEach(CommandQueue.Enqueue);
         _NodeViewModels.Remove(removeNode);
 
         var removeNodeLink = NodeLinkViewModels.FirstOrDefault(arg =>
@@ -308,6 +453,27 @@ namespace GMEPNodeGraph.ViewModels
       {
         _GroupNodeViewModels.Remove(removeGroup);
       }
+
+      UndoActions.Push(() =>
+      {
+        foreach (var removeNode in removeNodes)
+        {
+          removeNode.Create(ProjectId, db).ForEach(CommandQueue.Enqueue);
+          _NodeViewModels.Add(removeNode);
+
+          var removeNodeLink = NodeLinkViewModels.FirstOrDefault(arg =>
+            arg.InputConnectorNodeGuid == removeNode.Guid
+            || arg.OutputConnectorNodeGuid == removeNode.Guid
+          );
+          _NodeLinkViewModels.Add(removeNodeLink);
+        }
+        var removeGroups = _GroupNodeViewModels.Where(arg => arg.IsSelected).ToArray();
+        foreach (var removeGroup in removeGroups)
+        {
+          _GroupNodeViewModels.Add(removeGroup);
+        }
+      });
+      RedoActions.Push(RemoveNodes);
     }
 
     void ClearNodes()
@@ -389,20 +555,44 @@ namespace GMEPNodeGraph.ViewModels
 
     void Connected(ConnectedLinkOperationEventArgs param)
     {
-      var nodeLink = new NodeLinkViewModel()
-      {
-        OutputConnectorGuid = param.OutputConnectorGuid,
-        OutputConnectorNodeGuid = param.OutputConnectorNodeGuid,
-        InputConnectorGuid = param.InputConnectorGuid,
-        InputConnectorNodeGuid = param.InputConnectorNodeGuid,
-        IsLocked = IsLockedAllNodeLinks,
-      };
+      var nodeLink = new NodeLinkViewModel(
+        Guid.NewGuid().ToString(),
+        param.InputConnectorGuid.ToString(),
+        param.OutputConnectorGuid.ToString(),
+        param.InputConnectorNodeGuid.ToString(),
+        param.OutputConnectorNodeGuid.ToString()
+      );
       _NodeLinkViewModels.Add(nodeLink);
+
+      nodeLink.Create(ProjectId, db).ForEach(CommandQueue.Enqueue);
+
+      DefaultNodeViewModel childNode = _NodeViewModels.FirstOrDefault(arg =>
+        arg.Guid == param.InputConnectorNodeGuid
+      );
+      DefaultNodeViewModel parentNode = _NodeViewModels.FirstOrDefault(arg =>
+        arg.Guid == param.OutputConnectorNodeGuid
+      );
+
+      if (parentNode != null && childNode != null)
+      {
+        childNode.ParentId = parentNode.Id;
+      }
     }
 
     void Disconnected(DisconnectedLinkOperationEventArgs param)
     {
       var nodeLink = _NodeLinkViewModels.First(arg => arg.Guid == param.NodeLinkGuid);
+      nodeLink.Delete(db).ForEach(CommandQueue.Enqueue);
+      DefaultNodeViewModel childNode = _NodeViewModels.FirstOrDefault(arg =>
+        arg.Guid == param.InputConnectorNodeGuid
+      );
+      DefaultNodeViewModel parentNode = _NodeViewModels.FirstOrDefault(arg =>
+        arg.Guid == param.OutputConnectorNodeGuid
+      );
+      if (childNode != null)
+      {
+        childNode.ParentId = string.Empty;
+      }
       _NodeLinkViewModels.Remove(nodeLink);
     }
 
@@ -432,6 +622,45 @@ namespace GMEPNodeGraph.ViewModels
       foreach (ElectricalServiceViewModel service in services)
       {
         LoadService(service);
+      }
+    }
+
+    void Save()
+    {
+      {
+        MySqlCommand command = CommandQueue.Dequeue();
+        while (command != null)
+        {
+          command.ExecuteNonQuery();
+          command = CommandQueue.Dequeue();
+        }
+      }
+      foreach (DefaultNodeViewModel node in _NodeViewModels)
+      {
+        List<MySqlCommand> commands = node.Update(db);
+        foreach (MySqlCommand command in commands)
+        {
+          command.ExecuteNonQuery();
+        }
+      }
+    }
+
+    void Undo()
+    {
+      Action undoAction = UndoActions.Pop();
+      if (undoAction != null)
+      {
+        undoAction();
+        ExecutableRedoActions.Push(RedoActions.Pop());
+      }
+    }
+
+    void Redo()
+    {
+      Action redoAction = ExecutableRedoActions.Pop();
+      if (redoAction != null)
+      {
+        redoAction();
       }
     }
   }

@@ -11,87 +11,27 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using GMEPNodeGraph;
+using GMEPNodeGraph.Utilities;
+using MySql.Data.MySqlClient;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
 
 namespace GMEPNodeGraph.ViewModels
 {
   public class ElectricalTransformerViewModel : DefaultNodeViewModel
   {
-    private int _distanceFromParent;
-    private int _kva;
-    private bool _powered;
-    public ElectricalPanelViewModel ChildPanel
+    public int VoltageId
     {
-      get => _ChildPanel;
-      set => RaisePropertyChangedIfSet(ref _ChildPanel, value);
+      get => _VoltageId;
+      set => RaisePropertyChangedIfSet(ref _VoltageId, value);
     }
-    ElectricalPanelViewModel _ChildPanel = null;
+    int _VoltageId = 1;
 
-    public ElectricalTransformerViewModel(
-      string Id,
-      string ProjectId,
-      string ParentId,
-      int distanceFromParent,
-      string ColorCode,
-      int Voltage,
-      string name,
-      int kva,
-      bool powered,
-      int circuitNo,
-      bool IsHiddenOnPlan
-    )
+    public int KvaId
     {
-      this.Id = Id;
-      this.ProjectId = ProjectId;
-      this.ColorCode = ColorCode;
-      this.ParentId = ParentId;
-      this.PhaseA = 0;
-      this.PhaseB = 0;
-      this.PhaseC = 0;
-      this.Amp = 0;
-      this.Name = name;
-      this.CircuitNo = circuitNo;
-      _distanceFromParent = distanceFromParent;
-      this.Voltage = Voltage;
-      _kva = kva;
-      _powered = powered;
-      _IsHiddenOnPlan = IsHiddenOnPlan;
+      get => _KvaId;
+      set => RaisePropertyChangedIfSet(ref _KvaId, value);
     }
-
-    public int Voltage
-    {
-      get => _Voltage;
-      set => RaisePropertyChangedIfSet(ref _Voltage, value);
-    }
-    int _Voltage = 0;
-
-    public int Kva
-    {
-      get => _Kva;
-      set => RaisePropertyChangedIfSet(ref _Kva, value);
-    }
-    int _Kva = 0;
-
-    public bool Powered
-    {
-      get => _Powered;
-      set => RaisePropertyChangedIfSet(ref _Powered, value);
-    }
-    bool _Powered = false;
-
-    public bool IsHiddenOnPlan
-    {
-      get => _IsHiddenOnPlan;
-      set => RaisePropertyChangedIfSet(ref _IsHiddenOnPlan, value);
-    }
-    bool _IsHiddenOnPlan = false;
-
-    public string Body
-    {
-      get => _Body;
-      set => RaisePropertyChangedIfSet(ref _Body, value);
-    }
-    string _Body = string.Empty;
+    int _KvaId = 1;
 
     public override IEnumerable<NodeConnectorViewModel> Inputs => _Inputs;
     readonly ObservableCollection<NodeInputViewModel> _Inputs =
@@ -101,22 +41,109 @@ namespace GMEPNodeGraph.ViewModels
     readonly ObservableCollection<NodeOutputViewModel> _Outputs =
       new ObservableCollection<NodeOutputViewModel>();
 
-    public ElectricalTransformerViewModel(Point position)
+    public ElectricalTransformerViewModel(
+      string Id,
+      string NodeId,
+      string Name,
+      int VoltageId,
+      int KvaId,
+      string ColorCode,
+      int StatusId,
+      Point position
+    )
     {
+      this.Id = Id;
+      Guid = Guid.Parse(NodeId);
+      this.Name = Name;
+      this.VoltageId = VoltageId;
+      this.KvaId = KvaId;
+      this.ColorCode = ColorCode;
       _Outputs.Add(new NodeOutputViewModel($"Output"));
       _Inputs.Add(new NodeInputViewModel($"Input", true));
-      PanelBusAmpVisible = Visibility.Visible;
-      PanelMainAmpVisible = Visibility.Visible;
-      PanelAmpLabelsVisible = Visibility.Visible;
-      VoltagePhaseVisible = Visibility.Visible;
-      MloVisible = Visibility.Visible;
-      Name = "Transfomer";
+      KvaVisible = Visibility.Visible;
+      TransformerVoltageVisible = Visibility.Visible;
       Position = position;
+      this.StatusId = StatusId;
+      NodeType = NodeType.Transformer;
     }
 
     public override NodeConnectorViewModel FindConnector(Guid guid)
     {
-      return Inputs.FirstOrDefault(arg => arg.Guid == guid);
+      var input = Inputs.FirstOrDefault(arg => arg.Guid == guid);
+      if (input != null)
+      {
+        return input;
+      }
+
+      var output = Outputs.FirstOrDefault(arg => arg.Guid == guid);
+      return output;
+    }
+
+    public override List<MySqlCommand> Create(string projectId, GmepDatabase db)
+    {
+      List<MySqlCommand> commands = new List<MySqlCommand>();
+      string query =
+        @"
+        INSERT INTO electrical_transformers
+        (id, parent_id, project_id, node_id, kva_id, voltage_id, name, color_code, status_id)
+        VALUES (@id, @projectId, @nodeId, @kvaId, @voltageId, @name, @colorCode, @statusId)
+        ";
+      MySqlCommand createTransformerCommand = new MySqlCommand(query, db.Connection);
+      createTransformerCommand.Parameters.AddWithValue("@id", Id);
+      createTransformerCommand.Parameters.AddWithValue("@parentId", ParentId);
+      createTransformerCommand.Parameters.AddWithValue("@nodeId", Guid.ToString());
+      createTransformerCommand.Parameters.AddWithValue("@projectId", projectId);
+      createTransformerCommand.Parameters.AddWithValue("@name", Name);
+      createTransformerCommand.Parameters.AddWithValue("@kvaId", KvaId);
+      createTransformerCommand.Parameters.AddWithValue("@voltageId", VoltageId);
+      createTransformerCommand.Parameters.AddWithValue("@colorCode", ColorCode);
+      createTransformerCommand.Parameters.AddWithValue("@statusId", StatusId);
+      commands.Add(createTransformerCommand);
+      commands.Add(GetCreateNodeCommand(projectId, db));
+      return commands;
+    }
+
+    public override List<MySqlCommand> Update(GmepDatabase db)
+    {
+      List<MySqlCommand> commands = new List<MySqlCommand>();
+      string query =
+        @"
+        UPDATE electrical_transformers
+        SET
+        parent_id = @parentId,
+        kva_id = @kvaId,
+        voltage_id = @voltageId,
+        color_code = @colorCode,
+        name = @name,
+        status_id = @statusId
+        WHERE id = @id
+        ";
+      MySqlCommand updatePanelCommand = new MySqlCommand(query, db.Connection);
+      updatePanelCommand.Parameters.AddWithValue("@id", Id);
+      updatePanelCommand.Parameters.AddWithValue("@parentId", ParentId);
+      updatePanelCommand.Parameters.AddWithValue("@kvaId", KvaId);
+      updatePanelCommand.Parameters.AddWithValue("@voltageId", VoltageId);
+      updatePanelCommand.Parameters.AddWithValue("@colorCode", ColorCode);
+      updatePanelCommand.Parameters.AddWithValue("@name", Name);
+      updatePanelCommand.Parameters.AddWithValue("@statusId", StatusId);
+      commands.Add(updatePanelCommand);
+      commands.Add(GetUpdateNodeCommand(db));
+      return commands;
+    }
+
+    public override List<MySqlCommand> Delete(GmepDatabase db)
+    {
+      List<MySqlCommand> commands = new List<MySqlCommand>();
+      string query =
+        @"
+        DELETE FROM electrical_transformers
+        WHERE id = @id
+        ";
+      MySqlCommand deletePanelCommand = new MySqlCommand(query, db.Connection);
+      deletePanelCommand.Parameters.AddWithValue("@id", Id);
+      commands.Add(deletePanelCommand);
+      commands.Add(GetDeleteNodeCommand(db));
+      return commands;
     }
   }
 }
