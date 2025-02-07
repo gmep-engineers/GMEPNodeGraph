@@ -92,7 +92,19 @@ namespace GMEPNodeGraph.ViewModels
       createServiceCommand.Parameters.AddWithValue("@colorCode", ColorCode);
       createServiceCommand.Parameters.AddWithValue("@statusId", StatusId);
       commands.Add(createServiceCommand);
-      commands.Add(GetCreateNodeCommand(projectId, db));
+      query =
+        @"
+        INSERT INTO electrical_single_line_nodes
+        (id, project_id, loc_x, loc_y, output_connector_id)
+        VALUES (@id, @projectId, @locX, @locY, @outputConnectorId)
+        ";
+      MySqlCommand createNodeCommand = new MySqlCommand(query, db.Connection);
+      createNodeCommand.Parameters.AddWithValue("@id", Guid.ToString());
+      createNodeCommand.Parameters.AddWithValue("@projectId", projectId);
+      createNodeCommand.Parameters.AddWithValue("@locX", Position.X);
+      createNodeCommand.Parameters.AddWithValue("@locY", Position.Y);
+      createNodeCommand.Parameters.AddWithValue("@outputConnectorId", Outputs.First());
+      commands.Add(createNodeCommand);
       return commands;
     }
 
