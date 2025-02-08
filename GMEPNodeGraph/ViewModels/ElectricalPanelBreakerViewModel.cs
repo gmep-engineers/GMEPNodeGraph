@@ -19,6 +19,12 @@ namespace GMEPNodeGraph.ViewModels
       set => RaisePropertyChangedIfSet(ref _NumPoles, value);
     }
     int _NumPoles = 3;
+    public int PanelAmpRatingId
+    {
+      get => _BusAmpRatingId;
+      set => RaisePropertyChangedIfSet(ref _BusAmpRatingId, value);
+    }
+    int _BusAmpRatingId = 0;
     public override IEnumerable<NodeConnectorViewModel> Inputs => _Inputs;
     readonly ObservableCollection<NodeInputViewModel> _Inputs =
       new ObservableCollection<NodeInputViewModel>();
@@ -33,20 +39,56 @@ namespace GMEPNodeGraph.ViewModels
       int PanelAmpRatingId,
       int NumPoles,
       int StatusId,
-      Point Position
+      Point Position,
+      string InputConnectorId,
+      string OutputConnectorId
     )
     {
       this.Id = Id;
-      Guid = Guid.Parse(NodeId);
+      if (Guid.TryParse(NodeId, out Guid id))
+      {
+        Guid = id;
+      }
+      else
+      {
+        Guid = Guid.NewGuid();
+        GmepDatabase db = new GmepDatabase();
+        db.OpenConnection();
+        MySqlCommand createNodeCommand = GetCreateNodeCommand(ProjectId, db);
+        createNodeCommand.ExecuteNonQuery();
+        List<MySqlCommand> updateNodeCommand = Update(db);
+        updateNodeCommand[0].ExecuteNonQuery();
+        updateNodeCommand[1].ExecuteNonQuery();
+        db.CloseConnection();
+      }
       this.PanelAmpRatingId = PanelAmpRatingId;
       this.NumPoles = NumPoles;
       this.Position = Position;
       this.StatusId = StatusId;
-      _Outputs.Add(new NodeOutputViewModel($"Output"));
-      _Inputs.Add(new NodeInputViewModel($"Input", true));
+      if (Guid.TryParse(InputConnectorId, out Guid inputId))
+      {
+        NodeInputViewModel input = new NodeInputViewModel($"Input", true);
+        input.Guid = inputId;
+        _Inputs.Add(input);
+      }
+      else
+      {
+        _Inputs.Add(new NodeInputViewModel($"Input", true));
+      }
+      if (Guid.TryParse(OutputConnectorId, out Guid outputId))
+      {
+        NodeOutputViewModel output = new NodeOutputViewModel($"Output");
+        output.Guid = outputId;
+        _Outputs.Add(output);
+      }
+      else
+      {
+        _Outputs.Add(new NodeOutputViewModel($"Output"));
+      }
       PanelBusAmpVisible = Visibility.Visible;
       PoleVisible = Visibility.Visible;
       NodeType = NodeType.DistributionBreaker;
+      Name = "Panel Bkr.";
     }
 
     public override NodeConnectorViewModel FindConnector(Guid guid)
@@ -67,14 +109,13 @@ namespace GMEPNodeGraph.ViewModels
       string query =
         @"
         INSERT INTO electrical_panel_breakers
-        (id, parent_id, project_id, node_id, amp_rating_id, num_poles, status_id)
-        VALUES (@id, @projectId, @ampRatingId, @numPoles, @statusId)
+        (id, project_id, node_id, amp_rating_id, num_poles, status_id)
+        VALUES (@id, @projectId, @nodeId, @ampRatingId, @numPoles, @statusId)
         ";
       MySqlCommand createBreakerCommand = new MySqlCommand(query, db.Connection);
       createBreakerCommand.Parameters.AddWithValue("@id", Id);
-      createBreakerCommand.Parameters.AddWithValue("@parentId", ParentId);
-      createBreakerCommand.Parameters.AddWithValue("@nodeId", Guid.ToString());
       createBreakerCommand.Parameters.AddWithValue("@projectId", projectId);
+      createBreakerCommand.Parameters.AddWithValue("@nodeId", Guid.ToString());
       createBreakerCommand.Parameters.AddWithValue("@ampRatingId", PanelAmpRatingId);
       createBreakerCommand.Parameters.AddWithValue("@numPoles", NumPoles);
       createBreakerCommand.Parameters.AddWithValue("@statusId", StatusId);
@@ -89,12 +130,12 @@ namespace GMEPNodeGraph.ViewModels
       string query =
         @"
         UPDATE electrical_panel_breakers
-        SET parent_id = @parentId, amp_rating_id = @ampRatingId, num_poles = @numPoles, status_id = @statusId
+        SET node_id = @nodeId, amp_rating_id = @ampRatingId, num_poles = @numPoles, status_id = @statusId
         WHERE id = @id
         ";
       MySqlCommand updateBreakerCommand = new MySqlCommand(query, db.Connection);
       updateBreakerCommand.Parameters.AddWithValue("@id", Id);
-      updateBreakerCommand.Parameters.AddWithValue("@parentId", ParentId);
+      updateBreakerCommand.Parameters.AddWithValue("@nodeId", ParentId);
       updateBreakerCommand.Parameters.AddWithValue("@ampRatingId", PanelAmpRatingId);
       updateBreakerCommand.Parameters.AddWithValue("@numPoles", NumPoles);
       updateBreakerCommand.Parameters.AddWithValue("@statusId", StatusId);

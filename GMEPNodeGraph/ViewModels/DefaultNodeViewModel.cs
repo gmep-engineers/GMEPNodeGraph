@@ -233,20 +233,6 @@ namespace GMEPNodeGraph.ViewModels
     }
     int _Pole = 0;
 
-    public int Amp
-    {
-      get => _Amp;
-      set => RaisePropertyChangedIfSet(ref _Amp, value);
-    }
-    int _Amp = 0;
-
-    public int PanelAmpRatingId
-    {
-      get => _PanelAmpRatingId;
-      set => RaisePropertyChangedIfSet(ref _PanelAmpRatingId, value);
-    }
-    int _PanelAmpRatingId = 0;
-
     public int ParentDistance
     {
       get => _ParentDistance;
@@ -303,8 +289,14 @@ namespace GMEPNodeGraph.ViewModels
       createNodeCommand.Parameters.AddWithValue("@projectId", projectId);
       createNodeCommand.Parameters.AddWithValue("@locX", Position.X);
       createNodeCommand.Parameters.AddWithValue("@locY", Position.Y);
-      createNodeCommand.Parameters.AddWithValue("@inputConnectorId", Inputs.First());
-      createNodeCommand.Parameters.AddWithValue("@outputConnectorId", Outputs.First());
+      createNodeCommand.Parameters.AddWithValue(
+        "@inputConnectorId",
+        Inputs.First().Guid.ToString()
+      );
+      createNodeCommand.Parameters.AddWithValue(
+        "@outputConnectorId",
+        Outputs.First().Guid.ToString()
+      );
       return createNodeCommand;
     }
 
@@ -317,7 +309,7 @@ namespace GMEPNodeGraph.ViewModels
         WHERE id = @id
         ";
       MySqlCommand updateNodeCommand = new MySqlCommand(query, db.Connection);
-      updateNodeCommand.Parameters.AddWithValue("@id", Id);
+      updateNodeCommand.Parameters.AddWithValue("@id", Guid.ToString());
       updateNodeCommand.Parameters.AddWithValue("@locX", Position.X);
       updateNodeCommand.Parameters.AddWithValue("@locY", Position.Y);
       return updateNodeCommand;

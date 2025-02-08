@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO.Packaging;
 using System.Linq;
 using System.Linq;
@@ -34,19 +35,19 @@ namespace GMEPNodeGraph.ViewModels
     }
     bool _IsMlo = true;
 
-    public int BusAmpRatingId
+    public int PanelAmpRatingId
     {
       get => _BusAmp;
       set => RaisePropertyChangedIfSet(ref _BusAmp, value);
     }
-    int _BusAmp = 0;
+    int _BusAmp = 1;
 
     public int MainAmpRatingId
     {
       get => _MainAmp;
       set => RaisePropertyChangedIfSet(ref _MainAmp, value);
     }
-    int _MainAmp = 0;
+    int _MainAmp = 1;
 
     public override IEnumerable<NodeConnectorViewModel> Inputs => _Inputs;
     readonly ObservableCollection<NodeInputViewModel> _Inputs =
@@ -61,31 +62,65 @@ namespace GMEPNodeGraph.ViewModels
       string NodeId,
       string Name,
       int VoltageId,
-      int BusAmpRatingId,
+      int PanelAmpRatingId,
       int MainAmpRatingId,
       string ColorCode,
       bool IsMlo,
       int StatusId,
-      Point Position
+      Point Position,
+      string InputConnectorId,
+      string OutputConnectorId
     )
     {
-      _Outputs.Add(new NodeOutputViewModel($"Output"));
-      _Inputs.Add(new NodeInputViewModel($"Input", true));
       PanelBusAmpVisible = Visibility.Visible;
       PanelMainAmpVisible = Visibility.Visible;
       PanelAmpLabelsVisible = Visibility.Visible;
       VoltagePhaseVisible = Visibility.Visible;
       MloVisible = Visibility.Visible;
-
+      if (Guid.TryParse(InputConnectorId, out Guid inputId))
+      {
+        NodeInputViewModel input = new NodeInputViewModel($"Input", true);
+        input.Guid = inputId;
+        _Inputs.Add(input);
+      }
+      else
+      {
+        _Inputs.Add(new NodeInputViewModel($"Input", true));
+      }
+      if (Guid.TryParse(OutputConnectorId, out Guid outputId))
+      {
+        NodeOutputViewModel output = new NodeOutputViewModel($"Output");
+        output.Guid = outputId;
+        _Outputs.Add(output);
+      }
+      else
+      {
+        _Outputs.Add(new NodeOutputViewModel($"Output"));
+      }
       this.Name = Name;
       this.Position = Position;
       this.IsMlo = IsMlo;
-      this.BusAmpRatingId = BusAmpRatingId;
+      this.PanelAmpRatingId = PanelAmpRatingId;
       this.ColorCode = ColorCode;
       this.VoltageId = VoltageId;
       this.Id = Id;
       this.StatusId = StatusId;
-      Guid = Guid.Parse(NodeId);
+      if (Guid.TryParse(NodeId, out Guid id))
+      {
+        Guid = id;
+      }
+      else
+      {
+        Guid = Guid.NewGuid();
+        GmepDatabase db = new GmepDatabase();
+        db.OpenConnection();
+        MySqlCommand createNodeCommand = GetCreateNodeCommand(ProjectId, db);
+        createNodeCommand.ExecuteNonQuery();
+        List<MySqlCommand> updateNodeCommand = Update(db);
+        updateNodeCommand[0].ExecuteNonQuery();
+        updateNodeCommand[1].ExecuteNonQuery();
+        db.CloseConnection();
+      }
       this.MainAmpRatingId = MainAmpRatingId;
       NodeType = NodeType.Panel;
     }
@@ -109,14 +144,14 @@ namespace GMEPNodeGraph.ViewModels
         @"
         INSERT INTO electrical_panels
         (id, parent_id, project_id, node_id, bus_amp_rating_id, main_amp_rating_id, is_mlo, voltage_id, color_code, name, status_id)
-        VALUES (@id, @projectId, @nodeId, @busAmpRatingId, @mainAmpRatingId, @isMlo, @voltageId, @colorCode, @name, @statusId)
+        VALUES (@id, @parentId, @projectId, @nodeId, @busAmpRatingId, @mainAmpRatingId, @isMlo, @voltageId, @colorCode, @name, @statusId)
         ";
       MySqlCommand createPanelCommand = new MySqlCommand(query, db.Connection);
       createPanelCommand.Parameters.AddWithValue("@id", Id);
       createPanelCommand.Parameters.AddWithValue("@parentId", ParentId);
       createPanelCommand.Parameters.AddWithValue("@projectId", projectId);
       createPanelCommand.Parameters.AddWithValue("@nodeId", Guid.ToString());
-      createPanelCommand.Parameters.AddWithValue("@busAmpRatingId", BusAmpRatingId);
+      createPanelCommand.Parameters.AddWithValue("@busAmpRatingId", PanelAmpRatingId);
       createPanelCommand.Parameters.AddWithValue("@mainAmpRatingId", MainAmpRatingId);
       createPanelCommand.Parameters.AddWithValue("@isMlo", IsMlo);
       createPanelCommand.Parameters.AddWithValue("@voltageId", VoltageId);
@@ -135,6 +170,7 @@ namespace GMEPNodeGraph.ViewModels
         @"
         UPDATE electrical_panels
         SET
+        node_id = @nodeId,
         parent_id = @parentId,
         bus_amp_rating_id = @busAmpRatingId,
         main_amp_rating_id = @mainAmpRatingId,
@@ -147,8 +183,9 @@ namespace GMEPNodeGraph.ViewModels
         ";
       MySqlCommand updatePanelCommand = new MySqlCommand(query, db.Connection);
       updatePanelCommand.Parameters.AddWithValue("@id", Id);
+      updatePanelCommand.Parameters.AddWithValue("@nodeId", Guid.ToString());
       updatePanelCommand.Parameters.AddWithValue("@parentId", ParentId);
-      updatePanelCommand.Parameters.AddWithValue("@busAmpRatingId", BusAmpRatingId);
+      updatePanelCommand.Parameters.AddWithValue("@busAmpRatingId", PanelAmpRatingId);
       updatePanelCommand.Parameters.AddWithValue("@mainAmpRatingId", MainAmpRatingId);
       updatePanelCommand.Parameters.AddWithValue("@isMlo", IsMlo);
       updatePanelCommand.Parameters.AddWithValue("@voltageId", VoltageId);

@@ -31,16 +31,51 @@ namespace GMEPNodeGraph.ViewModels
       string NodeId,
       bool HasCts,
       int StatusId,
-      Point Position
+      Point Position,
+      string InputConnectorId,
+      string OutputConnectorId
     )
     {
-      Guid = Guid.Parse(NodeId);
+      if (Guid.TryParse(NodeId, out Guid id))
+      {
+        Guid = id;
+      }
+      else
+      {
+        Guid = Guid.NewGuid();
+        GmepDatabase db = new GmepDatabase();
+        db.OpenConnection();
+        MySqlCommand createNodeCommand = GetCreateNodeCommand(ProjectId, db);
+        createNodeCommand.ExecuteNonQuery();
+        List<MySqlCommand> updateNodeCommand = Update(db);
+        updateNodeCommand[0].ExecuteNonQuery();
+        updateNodeCommand[1].ExecuteNonQuery();
+        db.CloseConnection();
+      }
       this.Id = Id;
       this.Position = Position;
       this.HasCts = HasCts;
       this.StatusId = StatusId;
-      _Outputs.Add(new NodeOutputViewModel($"Output"));
-      _Inputs.Add(new NodeInputViewModel($"Input", true));
+      if (Guid.TryParse(InputConnectorId, out Guid inputId))
+      {
+        NodeInputViewModel input = new NodeInputViewModel($"Input", true);
+        input.Guid = inputId;
+        _Inputs.Add(input);
+      }
+      else
+      {
+        _Inputs.Add(new NodeInputViewModel($"Input", true));
+      }
+      if (Guid.TryParse(OutputConnectorId, out Guid outputId))
+      {
+        NodeOutputViewModel output = new NodeOutputViewModel($"Output");
+        output.Guid = outputId;
+        _Outputs.Add(output);
+      }
+      else
+      {
+        _Outputs.Add(new NodeOutputViewModel($"Output"));
+      }
       CtsVisible = Visibility.Visible;
       Name = "Meter";
       NodeType = NodeType.Meter;
@@ -64,12 +99,11 @@ namespace GMEPNodeGraph.ViewModels
       string query =
         @"
         INSERT INTO electrical_meters
-        (id, parent_id, project_id, node_id, has_cts, status_id)
-        VALUES (@id, @projectId, @ampRatingId, @hasCts, @statusId)
+        (id, project_id, node_id, has_cts, status_id)
+        VALUES (@id, @projectId, @nodeId, @hasCts, @statusId)
         ";
       MySqlCommand createBreakerCommand = new MySqlCommand(query, db.Connection);
       createBreakerCommand.Parameters.AddWithValue("@id", Id);
-      createBreakerCommand.Parameters.AddWithValue("@parentId", ParentId);
       createBreakerCommand.Parameters.AddWithValue("@nodeId", Guid.ToString());
       createBreakerCommand.Parameters.AddWithValue("@projectId", projectId);
       createBreakerCommand.Parameters.AddWithValue("@hasCts", HasCts);
@@ -85,12 +119,12 @@ namespace GMEPNodeGraph.ViewModels
       string query =
         @"
         UPDATE electrical_meters
-        SET parent_id = @parentId, has_cts = @hasCts, status_id = @statusId
+        SET node_id = @nodeId, has_cts = @hasCts, status_id = @statusId
         WHERE id = @id
         ";
       MySqlCommand updateBreakerCommand = new MySqlCommand(query, db.Connection);
       updateBreakerCommand.Parameters.AddWithValue("@id", Id);
-      updateBreakerCommand.Parameters.AddWithValue("@parentId", ParentId);
+      updateBreakerCommand.Parameters.AddWithValue("@nodeId", Guid.ToString());
       updateBreakerCommand.Parameters.AddWithValue("@hasCts", HasCts);
       updateBreakerCommand.Parameters.AddWithValue("@statusId", StatusId);
       commands.Add(updateBreakerCommand);

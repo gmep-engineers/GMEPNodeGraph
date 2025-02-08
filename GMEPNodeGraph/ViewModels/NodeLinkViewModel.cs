@@ -76,9 +76,8 @@ namespace GMEPNodeGraph.ViewModels
       OutputConnectorNodeGuid = Guid.Parse(OutputConnectorNodeId);
     }
 
-    public List<MySqlCommand> Create(string projectId, GmepDatabase db)
+    public MySqlCommand Create(string projectId, GmepDatabase db)
     {
-      List<MySqlCommand> commands = new List<MySqlCommand>();
       string query =
         @"
         INSERT INTO electrical_single_line_node_links
@@ -104,13 +103,11 @@ namespace GMEPNodeGraph.ViewModels
         "@outputConnectorNodeId",
         OutputConnectorNodeGuid.ToString()
       );
-      commands.Add(createNodeLinkCommand);
-      return commands;
+      return createNodeLinkCommand;
     }
 
-    public List<MySqlCommand> Update(GmepDatabase db)
+    public MySqlCommand Update(GmepDatabase db)
     {
-      List<MySqlCommand> commands = new List<MySqlCommand>();
       string query =
         @"
         UPDATE electrical_single_line_node_links
@@ -135,13 +132,11 @@ namespace GMEPNodeGraph.ViewModels
         "@outputConnectorNodeId",
         OutputConnectorNodeGuid.ToString()
       );
-      commands.Add(updateNodeLinkCommand);
-      return commands;
+      return updateNodeLinkCommand;
     }
 
-    public List<MySqlCommand> Delete(GmepDatabase db)
+    public MySqlCommand Delete(GmepDatabase db)
     {
-      List<MySqlCommand> commands = new List<MySqlCommand>();
       string query =
         @"
         DELETE FROM electrical_single_line_node_links
@@ -149,8 +144,8 @@ namespace GMEPNodeGraph.ViewModels
         ";
       MySqlCommand deleteNodeLinkCommand = new MySqlCommand(query, db.Connection);
       deleteNodeLinkCommand.Parameters.AddWithValue("@id", Guid.ToString());
-      commands.Add(deleteNodeLinkCommand);
-      return commands;
+
+      return deleteNodeLinkCommand;
     }
   }
 }

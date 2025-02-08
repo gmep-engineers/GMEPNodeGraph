@@ -8,7 +8,7 @@
         xmlns:ctrl="clr-namespace:NodeGraph.NET6.Controls;assembly=NodeGraph.NET6"
         xmlns:local="clr-namespace:GMEPNodeGraph"
         mc:Ignorable="d"
-        Title="GMEPNodeGraph" Height="600" Width="1000">
+        Title="GMEPNodeGraph" Height="600" Width="1000" WindowState="Maximized">
 
     <Window.DataContext>
         <vm:MainWindowViewModel/>
@@ -68,7 +68,7 @@
                     <DataTemplate>
                         <StackPanel Background="#FF666666">
                             <StackPanel HorizontalAlignment="Center">
-                                <TextBox Background="#FF666666" BorderThickness="2" BorderBrush="#FF666666" Text="{Binding Name}" />
+                                <TextBox Background="#FF666666" BorderThickness="2" MaxLength="15" BorderBrush="#FF666666" Text="{Binding Name}" />
                             </StackPanel>
                         </StackPanel>
                     </DataTemplate>
@@ -79,27 +79,27 @@
                     <DataTemplate>
                         <StackPanel Margin="5 5" VerticalAlignment="Center">
                             <!-- put voltage and amperage dropdown here-->
-                            <ComboBox Width="65">
-                                <ComboBoxItem>(N)</ComboBoxItem>
-                                <ComboBoxItem>(E)</ComboBoxItem>
-                                <ComboBoxItem>(R)</ComboBoxItem>
+                            <ComboBox Width="65" SelectedValue="{Binding Path=StatusId}" SelectedValuePath="Tag">
+                                <ComboBoxItem Tag="1">(N)</ComboBoxItem>
+                                <ComboBoxItem Tag="2">(E)</ComboBoxItem>
+                                <ComboBoxItem Tag="3">(R)</ComboBoxItem>
                             </ComboBox>
-                            <ComboBox Visibility="{Binding ServiceAmpVisible}">
-                                <ComboBoxItem>100A</ComboBoxItem>
-                                <ComboBoxItem>200A</ComboBoxItem>
-                                <ComboBoxItem>400A</ComboBoxItem>
-                                <ComboBoxItem>600A</ComboBoxItem>
-                                <ComboBoxItem>800A</ComboBoxItem>
-                                <ComboBoxItem>1000A</ComboBoxItem>
-                                <ComboBoxItem>1200A</ComboBoxItem>
-                                <ComboBoxItem>1600A</ComboBoxItem>
-                                <ComboBoxItem>2000A</ComboBoxItem>
-                                <ComboBoxItem>2200A</ComboBoxItem>
-                                <ComboBoxItem>3000A</ComboBoxItem>
-                                <ComboBoxItem>4000A</ComboBoxItem>
+                            <ComboBox Visibility="{Binding ServiceAmpVisible}" SelectedValue="{Binding Path=AmpRatingId}" SelectedValuePath="Tag">
+                                <ComboBoxItem Tag="1">100A</ComboBoxItem>
+                                <ComboBoxItem Tag="2">200A</ComboBoxItem>
+                                <ComboBoxItem Tag="3">400A</ComboBoxItem>
+                                <ComboBoxItem Tag="4">600A</ComboBoxItem>
+                                <ComboBoxItem Tag="5">800A</ComboBoxItem>
+                                <ComboBoxItem Tag="6">1000A</ComboBoxItem>
+                                <ComboBoxItem Tag="7">1200A</ComboBoxItem>
+                                <ComboBoxItem Tag="8">1600A</ComboBoxItem>
+                                <ComboBoxItem Tag="9">2000A</ComboBoxItem>
+                                <ComboBoxItem Tag="10">2200A</ComboBoxItem>
+                                <ComboBoxItem Tag="11">3000A</ComboBoxItem>
+                                <ComboBoxItem Tag="12">4000A</ComboBoxItem>
                             </ComboBox>
                             <Label Foreground="#FFF" Visibility="{Binding PanelAmpLabelsVisible}">Main Size</Label>
-                            <ComboBox Width="65" Visibility="{Binding PanelMainAmpVisible}">
+                            <ComboBox Width="65" Visibility="{Binding PanelMainAmpVisible}" SelectedValue="{Binding Path=MainAmpRatingId}" SelectedValuePath="Tag">
                                 <ComboBox.Style>
                                     <Style TargetType="ComboBox">
                                         <Setter Property="IsEnabled" Value="True"/>
@@ -107,77 +107,78 @@
                                             <DataTrigger Binding="{Binding IsMlo}" Value="True">
                                                 <Setter Property="IsEnabled" Value="False"/>
                                                 <Setter Property="SelectedValue" Value="14"/>
+                                                <Setter Property="Foreground" Value="LightGray"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </ComboBox.Style>
-                                <ComboBoxItem>60A</ComboBoxItem>
-                                <ComboBoxItem>100A</ComboBoxItem>
-                                <ComboBoxItem>125A</ComboBoxItem>
-                                <ComboBoxItem>150A</ComboBoxItem>
-                                <ComboBoxItem>175A</ComboBoxItem>
-                                <ComboBoxItem>200A</ComboBoxItem>
-                                <ComboBoxItem>225A</ComboBoxItem>
-                                <ComboBoxItem>250A</ComboBoxItem>
-                                <ComboBoxItem>275A</ComboBoxItem>
-                                <ComboBoxItem>400A</ComboBoxItem>
-                                <ComboBoxItem>500A</ComboBoxItem>
-                                <ComboBoxItem>600A</ComboBoxItem>
-                                <ComboBoxItem>800A</ComboBoxItem>
+                                <ComboBoxItem Tag="1">60A</ComboBoxItem>
+                                <ComboBoxItem Tag="2">100A</ComboBoxItem>
+                                <ComboBoxItem Tag="3">125A</ComboBoxItem>
+                                <ComboBoxItem Tag="4">150A</ComboBoxItem>
+                                <ComboBoxItem Tag="5">175A</ComboBoxItem>
+                                <ComboBoxItem Tag="6">200A</ComboBoxItem>
+                                <ComboBoxItem Tag="7">225A</ComboBoxItem>
+                                <ComboBoxItem Tag="8">250A</ComboBoxItem>
+                                <ComboBoxItem Tag="9">275A</ComboBoxItem>
+                                <ComboBoxItem Tag="10">400A</ComboBoxItem>
+                                <ComboBoxItem Tag="11">500A</ComboBoxItem>
+                                <ComboBoxItem Tag="12">600A</ComboBoxItem>
+                                <ComboBoxItem Tag="13">800A</ComboBoxItem>
                             </ComboBox>
                             <CheckBox IsChecked="{Binding IsMlo}" Foreground="#FFF" Visibility="{Binding MloVisible}" Margin="5 5 5 5">M.L.O.</CheckBox>
                             <Label Foreground="#FFF" Visibility="{Binding PanelAmpLabelsVisible}">Bus Size</Label>
-                            <ComboBox Width="65" Visibility="{Binding PanelBusAmpVisible}">
-                                <ComboBoxItem>60A</ComboBoxItem>
-                                <ComboBoxItem>100A</ComboBoxItem>
-                                <ComboBoxItem>125A</ComboBoxItem>
-                                <ComboBoxItem>150A</ComboBoxItem>
-                                <ComboBoxItem>175A</ComboBoxItem>
-                                <ComboBoxItem>200A</ComboBoxItem>
-                                <ComboBoxItem>225A</ComboBoxItem>
-                                <ComboBoxItem>250A</ComboBoxItem>
-                                <ComboBoxItem>275A</ComboBoxItem>
-                                <ComboBoxItem>400A</ComboBoxItem>
-                                <ComboBoxItem>500A</ComboBoxItem>
-                                <ComboBoxItem>600A</ComboBoxItem>
-                                <ComboBoxItem>800A</ComboBoxItem>
+                            <ComboBox Width="65" Visibility="{Binding PanelBusAmpVisible}" SelectedValue="{Binding Path=PanelAmpRatingId}" SelectedValuePath="Tag">
+                                <ComboBoxItem Tag="1">60A</ComboBoxItem>
+                                <ComboBoxItem Tag="2">100A</ComboBoxItem>
+                                <ComboBoxItem Tag="3">125A</ComboBoxItem>
+                                <ComboBoxItem Tag="4">150A</ComboBoxItem>
+                                <ComboBoxItem Tag="5">175A</ComboBoxItem>
+                                <ComboBoxItem Tag="6">200A</ComboBoxItem>
+                                <ComboBoxItem Tag="7">225A</ComboBoxItem>
+                                <ComboBoxItem Tag="8">250A</ComboBoxItem>
+                                <ComboBoxItem Tag="9">275A</ComboBoxItem>
+                                <ComboBoxItem Tag="10">400A</ComboBoxItem>
+                                <ComboBoxItem Tag="11">500A</ComboBoxItem>
+                                <ComboBoxItem Tag="12">600A</ComboBoxItem>
+                                <ComboBoxItem Tag="13">800A</ComboBoxItem>
                             </ComboBox>
-                            <ComboBox Width="95" Visibility="{Binding VoltagePhaseVisible}">
-                                <ComboBoxItem>120/208-3Φ</ComboBoxItem>
-                                <ComboBoxItem>120/240-1Φ</ComboBoxItem>
-                                <ComboBoxItem>277/480-3Φ</ComboBoxItem>
-                                <ComboBoxItem>120/240-3Φ</ComboBoxItem>
-                                <ComboBoxItem>120/208-1Φ</ComboBoxItem>
+                            <ComboBox Width="95" Visibility="{Binding VoltagePhaseVisible}" SelectedValue="{Binding Path=VoltageId}" SelectedValuePath="Tag">
+                                <ComboBoxItem Tag="1">120/208-3Φ</ComboBoxItem>
+                                <ComboBoxItem Tag="2">120/240-1Φ</ComboBoxItem>
+                                <ComboBoxItem Tag="3">277/480-3Φ</ComboBoxItem>
+                                <ComboBoxItem Tag="4">120/240-3Φ</ComboBoxItem>
+                                <ComboBoxItem Tag="5">120/208-1Φ</ComboBoxItem>
                             </ComboBox>
-                            <ComboBox Width="65" Visibility="{Binding PoleVisible}">
-                                <ComboBoxItem>3P</ComboBoxItem>
-                                <ComboBoxItem>2P</ComboBoxItem>
-                                <ComboBoxItem>1P</ComboBoxItem>
+                            <ComboBox Width="65" Visibility="{Binding PoleVisible}" SelectedValue="{Binding Path=NumPoles}" SelectedValuePath="Tag">
+                                <ComboBoxItem Tag="1">3P</ComboBoxItem>
+                                <ComboBoxItem Tag="2">2P</ComboBoxItem>
+                                <ComboBoxItem Tag="3">1P</ComboBoxItem>
                             </ComboBox>
-                            <CheckBox Foreground="#FFF" Visibility="{Binding CtsVisible}">CTS</CheckBox>
-                            <CheckBox Foreground="#FFF" Visibility="{Binding FuseOnlyVisible}">Fuse Only</CheckBox>
-                            <ComboBox Width="135" Visibility="{Binding TransformerVoltageVisible}">
-                                <ComboBoxItem>480V-120/208V-3Φ</ComboBoxItem>
-                                <ComboBoxItem>208V-277/480V-3Φ</ComboBoxItem>
-                                <ComboBoxItem>480V-120/240V-3Φ</ComboBoxItem>
-                                <ComboBoxItem>240V-277/480V-3Φ</ComboBoxItem>
-                                <ComboBoxItem>240V-120/208V-3Φ</ComboBoxItem>
-                                <ComboBoxItem>208V-120/240V-3Φ</ComboBoxItem>
-                                <ComboBoxItem>240V-120/208V-1Φ</ComboBoxItem>
-                                <ComboBoxItem>208V-120/240V-1Φ</ComboBoxItem>
+                            <CheckBox Foreground="#FFF" Visibility="{Binding CtsVisible}" IsChecked="{Binding HasCts}">CTS</CheckBox>
+                            <CheckBox Foreground="#FFF" Visibility="{Binding FuseOnlyVisible}" IsChecked="{Binding IsFuseOnly}">Fuse Only</CheckBox>
+                            <ComboBox Width="135" Visibility="{Binding TransformerVoltageVisible}" SelectedValue="{Binding Path=VoltageId}" SelectedValuePath="Tag">
+                                <ComboBoxItem Tag="1">480V-120/208V-3Φ</ComboBoxItem>
+                                <ComboBoxItem Tag="2">208V-277/480V-3Φ</ComboBoxItem>
+                                <ComboBoxItem Tag="3">480V-120/240V-3Φ</ComboBoxItem>
+                                <ComboBoxItem Tag="4">240V-277/480V-3Φ</ComboBoxItem>
+                                <ComboBoxItem Tag="5">240V-120/208V-3Φ</ComboBoxItem>
+                                <ComboBoxItem Tag="6">208V-120/240V-3Φ</ComboBoxItem>
+                                <ComboBoxItem Tag="7">240V-120/208V-1Φ</ComboBoxItem>
+                                <ComboBoxItem Tag="8">208V-120/240V-1Φ</ComboBoxItem>
                             </ComboBox>
-                            <ComboBox Width="95" Visibility="{Binding KvaVisible}">
-                                <ComboBoxItem>45 KVA</ComboBoxItem>
-                                <ComboBoxItem>75 KVA</ComboBoxItem>
-                                <ComboBoxItem>112.5 KVA</ComboBoxItem>
-                                <ComboBoxItem>225 KVA</ComboBoxItem>
-                                <ComboBoxItem>300 KVA</ComboBoxItem>
-                                <ComboBoxItem>500 KVA</ComboBoxItem>
-                                <ComboBoxItem>750 KVA</ComboBoxItem>
-                                <ComboBoxItem>1000 KVA</ComboBoxItem> 
-                                <ComboBoxItem>1500 KVA</ComboBoxItem>
-                                <ComboBoxItem>2000 KVA</ComboBoxItem>
-                                <ComboBoxItem>2500 KVA</ComboBoxItem> 
+                            <ComboBox Width="95" Visibility="{Binding KvaVisible}"  SelectedValue="{Binding Path=KvaId}" SelectedValuePath="Tag">
+                                <ComboBoxItem Tag="1">45 KVA</ComboBoxItem>
+                                <ComboBoxItem Tag="2">75 KVA</ComboBoxItem>
+                                <ComboBoxItem Tag="3">112.5 KVA</ComboBoxItem>
+                                <ComboBoxItem Tag="4">225 KVA</ComboBoxItem>
+                                <ComboBoxItem Tag="5">300 KVA</ComboBoxItem>
+                                <ComboBoxItem Tag="6">500 KVA</ComboBoxItem>
+                                <ComboBoxItem Tag="7">750 KVA</ComboBoxItem>
+                                <ComboBoxItem Tag="8">1000 KVA</ComboBoxItem>
+                                <ComboBoxItem Tag="9">1500 KVA</ComboBoxItem>
+                                <ComboBoxItem Tag="10">2000 KVA</ComboBoxItem>
+                                <ComboBoxItem Tag="11">2500 KVA</ComboBoxItem> 
                             </ComboBox>
                         </StackPanel>
                     </DataTemplate>
@@ -253,9 +254,10 @@
                     <MenuItem Header="_Redo" />
                     <MenuItem Header="_Select All" />
                 </MenuItem>
-                <TextBox TextWrapping="Wrap" Text="Project #" Width="120"/>
+                <TextBox TextWrapping="Wrap" Text="{Binding Path=ProjectNo}" Width="120"/>
                 <ComboBox Width="60" ItemsSource="{Binding ProjectVersions}" SelectedItem="{Binding Path=ProjectVersion}" IsSynchronizedWithCurrentItem="True" SelectedIndex="0"/>
-                <Button Content="Load" Width="50"/>
+                <Button Content="Load" Width="50" Command="{Binding LoadProjectNodesCommand}"/>
+                <Label Content="{Binding ProjectName}" Margin="-8"/>
             </Menu>
         </DockPanel>
         <ctrl:NodeGraph Grid.Row="3"

@@ -31,7 +31,12 @@ namespace GMEPNodeGraph.ViewModels
       set => RaisePropertyChangedIfSet(ref _HasSurgeProtection, value);
     }
     bool _HasSurgeProtection = false;
-
+    public int AmpRatingId
+    {
+      get => _AmpRatingId;
+      set => RaisePropertyChangedIfSet(ref _AmpRatingId, value);
+    }
+    int _AmpRatingId = 1;
     public override IEnumerable<NodeConnectorViewModel> Inputs => _Inputs;
     readonly ObservableCollection<NodeInputViewModel> _Inputs =
       new ObservableCollection<NodeInputViewModel>();
@@ -43,24 +48,59 @@ namespace GMEPNodeGraph.ViewModels
     public ElectricalMainBreakerViewModel(
       string Id,
       string NodeId,
-      int Amp,
+      int AmpRatingId,
       int NumPoles,
       bool HasGroundFaultProtection,
       bool HasSurgeProtection,
       int StatusId,
-      Point Position
+      Point Position,
+      string InputConnectorId,
+      string OutputConnectorId
     )
     {
       this.Id = Id;
-      Guid = Guid.Parse(NodeId);
-      this.Amp = Amp;
+      if (Guid.TryParse(NodeId, out Guid id))
+      {
+        Guid = id;
+      }
+      else
+      {
+        Guid = Guid.NewGuid();
+        GmepDatabase db = new GmepDatabase();
+        db.OpenConnection();
+        MySqlCommand createNodeCommand = GetCreateNodeCommand(ProjectId, db);
+        createNodeCommand.ExecuteNonQuery();
+        List<MySqlCommand> updateNodeCommand = Update(db);
+        updateNodeCommand[0].ExecuteNonQuery();
+        updateNodeCommand[1].ExecuteNonQuery();
+        db.CloseConnection();
+      }
+      this.AmpRatingId = AmpRatingId;
       this.NumPoles = NumPoles;
       this.HasGroundFaultProtection = HasGroundFaultProtection;
       this.HasSurgeProtection = HasSurgeProtection;
       this.StatusId = StatusId;
       this.Position = Position;
-      _Outputs.Add(new NodeOutputViewModel($"Output"));
-      _Inputs.Add(new NodeInputViewModel($"Input", true));
+      if (Guid.TryParse(InputConnectorId, out Guid inputId))
+      {
+        NodeInputViewModel input = new NodeInputViewModel($"Input", true);
+        input.Guid = inputId;
+        _Inputs.Add(input);
+      }
+      else
+      {
+        _Inputs.Add(new NodeInputViewModel($"Input", true));
+      }
+      if (Guid.TryParse(OutputConnectorId, out Guid outputId))
+      {
+        NodeOutputViewModel output = new NodeOutputViewModel($"Output");
+        output.Guid = outputId;
+        _Outputs.Add(output);
+      }
+      else
+      {
+        _Outputs.Add(new NodeOutputViewModel($"Output"));
+      }
       ServiceAmpVisible = Visibility.Visible;
       PoleVisible = Visibility.Visible;
       Name = "Main Breaker";
@@ -85,15 +125,14 @@ namespace GMEPNodeGraph.ViewModels
       string query =
         @"
         INSERT INTO electrical_main_breakers
-        (id, parent_id, project_id, node_id, amp_rating_id, has_ground_fault_protection, has_surge_protection, num_poles, status_id)
-        VALUES (@id, @projectId, @ampRatingId, @hasGroundFaultProtection, @hasSurgeProtection, @numPoles, @statusId)
+        (id, project_id, node_id, amp_rating_id, has_ground_fault_protection, has_surge_protection, num_poles, status_id)
+        VALUES (@id, @projectId, @nodeId, @ampRatingId, @hasGroundFaultProtection, @hasSurgeProtection, @numPoles, @statusId)
         ";
       MySqlCommand createBreakerCommand = new MySqlCommand(query, db.Connection);
       createBreakerCommand.Parameters.AddWithValue("@id", Id);
-      createBreakerCommand.Parameters.AddWithValue("@parentId", ParentId);
       createBreakerCommand.Parameters.AddWithValue("@nodeId", Guid.ToString());
       createBreakerCommand.Parameters.AddWithValue("@projectId", projectId);
-      createBreakerCommand.Parameters.AddWithValue("@ampRatingId", PanelAmpRatingId);
+      createBreakerCommand.Parameters.AddWithValue("@ampRatingId", AmpRatingId);
       createBreakerCommand.Parameters.AddWithValue(
         "@hasGroundFaultProtection",
         HasGroundFaultProtection
@@ -112,13 +151,13 @@ namespace GMEPNodeGraph.ViewModels
       string query =
         @"
         UPDATE electrical_main_breakers
-        SET parent_id = @parentId, amp_rating_id = @ampRatingId, has_ground_fault_protection = @hasGroundFaultProtection, has_surge_protection = @hasSurgeProtection, num_poles = @numPoles, status_id = @statusId
+        SET node_id = @nodeId, amp_rating_id = @ampRatingId, has_ground_fault_protection = @hasGroundFaultProtection, has_surge_protection = @hasSurgeProtection, num_poles = @numPoles, status_id = @statusId
         WHERE id = @id
         ";
       MySqlCommand updateBreakerCommand = new MySqlCommand(query, db.Connection);
       updateBreakerCommand.Parameters.AddWithValue("@id", Id);
-      updateBreakerCommand.Parameters.AddWithValue("@parentId", ParentId);
-      updateBreakerCommand.Parameters.AddWithValue("@ampRatingId", PanelAmpRatingId);
+      updateBreakerCommand.Parameters.AddWithValue("@nodeId", Guid.ToString());
+      updateBreakerCommand.Parameters.AddWithValue("@ampRatingId", AmpRatingId);
       updateBreakerCommand.Parameters.AddWithValue(
         "@hasGroundFaultProtection",
         HasGroundFaultProtection

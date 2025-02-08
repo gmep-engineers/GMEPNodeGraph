@@ -8,7 +8,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
+using GMEPNodeGraph.Utilities;
 using Livet;
+using MySql.Data.MySqlClient;
 using NodeGraph.Utilities;
 
 namespace GMEPNodeGraph.ViewModels
@@ -82,6 +84,13 @@ namespace GMEPNodeGraph.ViewModels
     }
     bool _IsSelected = false;
 
+    public int StatusId
+    {
+      get => _StatusId;
+      set => RaisePropertyChangedIfSet(ref _StatusId, value);
+    }
+    int _StatusId = 1;
+
     public ICommand SizeChangedCommand => _SizeChangedCommand.Get(SizeChanged);
     ViewModelCommandHandler<Size> _SizeChangedCommand = new ViewModelCommandHandler<Size>();
 
@@ -100,8 +109,71 @@ namespace GMEPNodeGraph.ViewModels
       Guid = Guid.Parse(Id);
       this.Name = Name;
       this.Position = Position;
-      this.InnerWidth = Width - 4;
-      this.InnerHeight = Height - 4;
+      this.InnerWidth = Width;
+      this.InnerHeight = Height;
+    }
+
+    public List<MySqlCommand> Create(string projectId, GmepDatabase db)
+    {
+      List<MySqlCommand> commands = new List<MySqlCommand>();
+      string query =
+        @"
+        INSERT INTO electrical_single_line_groups
+        (id,project_id, name, loc_x, loc_y, width, height, status_id)
+        VALUES (@id, @projectId, @name, @locX, @locY, @width, @height, @statusId)
+        ";
+      MySqlCommand createGroupCommand = new MySqlCommand(query, db.Connection);
+      createGroupCommand.Parameters.AddWithValue("@id", Guid.ToString());
+      createGroupCommand.Parameters.AddWithValue("@projectId", projectId);
+      createGroupCommand.Parameters.AddWithValue("@name", Name);
+      createGroupCommand.Parameters.AddWithValue("@locX", Position.X);
+      createGroupCommand.Parameters.AddWithValue("@locY", Position.Y);
+      createGroupCommand.Parameters.AddWithValue("@width", InnerWidth);
+      createGroupCommand.Parameters.AddWithValue("@width", InnerHeight);
+      createGroupCommand.Parameters.AddWithValue("@statusId", StatusId);
+      commands.Add(createGroupCommand);
+      return commands;
+    }
+
+    public List<MySqlCommand> Update(GmepDatabase db)
+    {
+      List<MySqlCommand> commands = new List<MySqlCommand>();
+      string query =
+        @"
+        UPDATE electrical_transformers
+        SET
+        name = @name,
+        loc_x = @locX,
+        loc_y = @locY,
+        width = @width,
+        height = @height,
+        status_id = @statusId
+        WHERE id = @id
+        ";
+      MySqlCommand updateGroupCommand = new MySqlCommand(query, db.Connection);
+      updateGroupCommand.Parameters.AddWithValue("@id", Guid.ToString());
+      updateGroupCommand.Parameters.AddWithValue("@name", Name);
+      updateGroupCommand.Parameters.AddWithValue("@locX", Position.X);
+      updateGroupCommand.Parameters.AddWithValue("@locY", Position.Y);
+      updateGroupCommand.Parameters.AddWithValue("@width", InnerWidth);
+      updateGroupCommand.Parameters.AddWithValue("@height", InnerHeight);
+      updateGroupCommand.Parameters.AddWithValue("@statusId", StatusId);
+      commands.Add(updateGroupCommand);
+      return commands;
+    }
+
+    public List<MySqlCommand> Delete(GmepDatabase db)
+    {
+      List<MySqlCommand> commands = new List<MySqlCommand>();
+      string query =
+        @"
+        DELETE FROM electrical_transformers
+        WHERE id = @id
+        ";
+      MySqlCommand deleteGroupCommand = new MySqlCommand(query, db.Connection);
+      deleteGroupCommand.Parameters.AddWithValue("@id", Guid.ToString());
+      commands.Add(deleteGroupCommand);
+      return commands;
     }
   }
 }
