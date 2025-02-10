@@ -684,7 +684,7 @@ namespace GMEPNodeGraph.ViewModels
 
     void CloseWindow()
     {
-      if (!ProjectLoaded)
+      if (ProjectLoaded)
       {
         Save();
       }
