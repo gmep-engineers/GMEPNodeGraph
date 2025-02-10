@@ -116,6 +116,9 @@ namespace GMEPNodeGraph.ViewModels
     ViewModelCommandHandler _AddMeterCommand = new ViewModelCommandHandler();
     public ViewModelCommand AddBusCommand => _AddBusCommand.Get(AddBus);
     ViewModelCommandHandler _AddBusCommand = new ViewModelCommandHandler();
+    public ViewModelCommand CloseWindowCommand => _CloseWindowCommand.Get(CloseWindow);
+    ViewModelCommandHandler _CloseWindowCommand = new ViewModelCommandHandler();
+
     public ViewModelCommand AddDistributionBreakerCommand =>
       _AddDistributionBreakerCommand.Get(AddDistributionBreaker);
     ViewModelCommandHandler _AddDistributionBreakerCommand = new ViewModelCommandHandler();
@@ -640,6 +643,10 @@ namespace GMEPNodeGraph.ViewModels
 
     void Save()
     {
+      if (!ProjectLoaded)
+      {
+        return;
+      }
       SetParentChildRels();
       db.OpenConnection();
       {
@@ -668,8 +675,19 @@ namespace GMEPNodeGraph.ViewModels
 
     void SaveAndClose()
     {
-      Save();
-      System.Windows.Application.Current.Shutdown();
+      if (ProjectLoaded)
+      {
+        Save();
+        System.Windows.Application.Current.Shutdown();
+      }
+    }
+
+    void CloseWindow()
+    {
+      if (!ProjectLoaded)
+      {
+        Save();
+      }
     }
   }
 }
