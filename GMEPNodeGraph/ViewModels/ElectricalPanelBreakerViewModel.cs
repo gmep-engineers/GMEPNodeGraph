@@ -44,6 +44,26 @@ namespace GMEPNodeGraph.ViewModels
       string OutputConnectorId
     )
     {
+      if (Guid.TryParse(InputConnectorId, out Guid inputId))
+      {
+        NodeInputViewModel input = new NodeInputViewModel($"Input", true);
+        input.Guid = inputId;
+        _Inputs.Add(input);
+      }
+      else
+      {
+        _Inputs.Add(new NodeInputViewModel($"Input", true));
+      }
+      if (Guid.TryParse(OutputConnectorId, out Guid outputId))
+      {
+        NodeOutputViewModel output = new NodeOutputViewModel($"Output");
+        output.Guid = outputId;
+        _Outputs.Add(output);
+      }
+      else
+      {
+        _Outputs.Add(new NodeOutputViewModel($"Output"));
+      }
       this.Id = Id;
       if (Guid.TryParse(NodeId, out Guid id))
       {
@@ -65,26 +85,7 @@ namespace GMEPNodeGraph.ViewModels
       this.NumPoles = NumPoles;
       this.Position = Position;
       this.StatusId = StatusId;
-      if (Guid.TryParse(InputConnectorId, out Guid inputId))
-      {
-        NodeInputViewModel input = new NodeInputViewModel($"Input", true);
-        input.Guid = inputId;
-        _Inputs.Add(input);
-      }
-      else
-      {
-        _Inputs.Add(new NodeInputViewModel($"Input", true));
-      }
-      if (Guid.TryParse(OutputConnectorId, out Guid outputId))
-      {
-        NodeOutputViewModel output = new NodeOutputViewModel($"Output");
-        output.Guid = outputId;
-        _Outputs.Add(output);
-      }
-      else
-      {
-        _Outputs.Add(new NodeOutputViewModel($"Output"));
-      }
+
       PanelBusAmpVisible = Visibility.Visible;
       PoleVisible = Visibility.Visible;
       NodeType = NodeType.DistributionBreaker;
@@ -135,7 +136,7 @@ namespace GMEPNodeGraph.ViewModels
         ";
       MySqlCommand updateBreakerCommand = new MySqlCommand(query, db.Connection);
       updateBreakerCommand.Parameters.AddWithValue("@id", Id);
-      updateBreakerCommand.Parameters.AddWithValue("@nodeId", ParentId);
+      updateBreakerCommand.Parameters.AddWithValue("@nodeId", Guid.ToString());
       updateBreakerCommand.Parameters.AddWithValue("@ampRatingId", PanelAmpRatingId);
       updateBreakerCommand.Parameters.AddWithValue("@numPoles", NumPoles);
       updateBreakerCommand.Parameters.AddWithValue("@statusId", StatusId);

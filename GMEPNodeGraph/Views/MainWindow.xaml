@@ -245,14 +245,11 @@
         <DockPanel Grid.Row="0">
             <Menu DockPanel.Dock="Top">
                 <MenuItem Header="_File">
-                    <MenuItem Header="_Open" />
                     <MenuItem Header="_Save" Command="{Binding SaveCommand}"/>
-                    <MenuItem Header="_Close" />
+                    <MenuItem Header="_Close" Command="{Binding SaveAndCloseCommand}"/>
                 </MenuItem>
                 <MenuItem Header="_Edit">
-                    <MenuItem Header="_Undo" />
-                    <MenuItem Header="_Redo" />
-                    <MenuItem Header="_Select All" />
+                    <MenuItem Header="_Select All" Command="{Binding SelectAllCommand}" />
                 </MenuItem>
                 <TextBox TextWrapping="Wrap" Text="{Binding Path=ProjectNo}" Width="120"/>
                 <ComboBox Width="60" ItemsSource="{Binding ProjectVersions}" SelectedItem="{Binding Path=ProjectVersion}" IsSynchronizedWithCurrentItem="True" SelectedIndex="0"/>

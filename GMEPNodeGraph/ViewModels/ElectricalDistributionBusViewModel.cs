@@ -37,25 +37,6 @@ namespace GMEPNodeGraph.ViewModels
     )
     {
       this.Id = Id;
-      if (Guid.TryParse(NodeId, out Guid id))
-      {
-        Guid = id;
-      }
-      else
-      {
-        Guid = Guid.NewGuid();
-        GmepDatabase db = new GmepDatabase();
-        db.OpenConnection();
-        MySqlCommand createNodeCommand = GetCreateNodeCommand(ProjectId, db);
-        createNodeCommand.ExecuteNonQuery();
-        List<MySqlCommand> updateNodeCommand = Update(db);
-        updateNodeCommand[0].ExecuteNonQuery();
-        updateNodeCommand[1].ExecuteNonQuery();
-        db.CloseConnection();
-      }
-      this.AmpRatingId = AmpRatingId;
-      this.StatusId = StatusId;
-      this.Position = Position;
       if (Guid.TryParse(InputConnectorId, out Guid inputId))
       {
         NodeInputViewModel input = new NodeInputViewModel($"Input", true);
@@ -76,6 +57,26 @@ namespace GMEPNodeGraph.ViewModels
       {
         _Outputs.Add(new NodeOutputViewModel($"Output"));
       }
+      if (Guid.TryParse(NodeId, out Guid id))
+      {
+        Guid = id;
+      }
+      else
+      {
+        Guid = Guid.NewGuid();
+        GmepDatabase db = new GmepDatabase();
+        db.OpenConnection();
+        MySqlCommand createNodeCommand = GetCreateNodeCommand(ProjectId, db);
+        createNodeCommand.ExecuteNonQuery();
+        List<MySqlCommand> updateNodeCommand = Update(db);
+        updateNodeCommand[0].ExecuteNonQuery();
+        updateNodeCommand[1].ExecuteNonQuery();
+        db.CloseConnection();
+      }
+      this.AmpRatingId = AmpRatingId;
+      this.StatusId = StatusId;
+      this.Position = Position;
+
       ServiceAmpVisible = Visibility.Visible;
       Name = "Distribution Bus";
       NodeType = NodeType.DistributionBus;

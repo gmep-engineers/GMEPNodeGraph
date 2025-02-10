@@ -16,6 +16,7 @@ using GMEPNodeGraph.ViewModels;
 using GMEPNodeGraph.Views;
 using Livet;
 using Livet.Commands;
+using Microsoft.Win32;
 using MySql.Data.MySqlClient;
 using NodeGraph.NET6.Controls;
 using NodeGraph.NET6.Operation;
@@ -135,6 +136,12 @@ namespace GMEPNodeGraph.ViewModels
 
     public ViewModelCommand SaveCommand => _SaveCommand.Get(Save);
     ViewModelCommandHandler _SaveCommand = new ViewModelCommandHandler();
+
+    public ViewModelCommand SelectAllCommand => _SelectAllCommand.Get(SelectAll);
+    ViewModelCommandHandler _SelectAllCommand = new ViewModelCommandHandler();
+
+    public ViewModelCommand SaveAndCloseCommand => _SaveAndCloseCommand.Get(SaveAndClose);
+    ViewModelCommandHandler _SaveAndCloseCommand = new ViewModelCommandHandler();
     public ListenerCommand<PreviewConnectLinkOperationEventArgs> PreviewConnectLinkCommand =>
       _PreviewConnectLinkCommand.Get(PreviewConnect);
     ViewModelCommandHandler<PreviewConnectLinkOperationEventArgs> _PreviewConnectLinkCommand =
@@ -563,6 +570,22 @@ namespace GMEPNodeGraph.ViewModels
 
     void SelectionChanged(IList list) { }
 
+    void SelectAll()
+    {
+      foreach (DefaultNodeViewModel node in _NodeViewModels)
+      {
+        node.IsSelected = true;
+      }
+      foreach (GroupNodeViewModel groupNode in _GroupNodeViewModels)
+      {
+        groupNode.IsSelected = true;
+      }
+      foreach (NodeLinkViewModel link in _NodeLinkViewModels)
+      {
+        link.IsSelected = true;
+      }
+    }
+
     void LoadProjectNodes()
     {
       if (string.IsNullOrEmpty(ProjectNo) || ProjectNo == "Project #")
@@ -609,6 +632,7 @@ namespace GMEPNodeGraph.ViewModels
       }
       foreach (DefaultNodeViewModel node in _NodeViewModels)
       {
+        Trace.WriteLine("Updating " + node.Name);
         List<MySqlCommand> commands = node.Update(db);
         foreach (MySqlCommand command in commands)
         {
@@ -620,6 +644,12 @@ namespace GMEPNodeGraph.ViewModels
         link.Update(db).ExecuteNonQuery();
       }
       db.CloseConnection();
+    }
+
+    void SaveAndClose()
+    {
+      Save();
+      System.Windows.Application.Current.Shutdown();
     }
   }
 }

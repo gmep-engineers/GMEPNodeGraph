@@ -52,6 +52,26 @@ namespace GMEPNodeGraph.ViewModels
     )
     {
       this.Id = Id;
+      if (Guid.TryParse(InputConnectorId, out Guid inputId))
+      {
+        NodeInputViewModel input = new NodeInputViewModel($"Input", true);
+        input.Guid = inputId;
+        _Inputs.Add(input);
+      }
+      else
+      {
+        _Inputs.Add(new NodeInputViewModel($"Input", true));
+      }
+      if (Guid.TryParse(OutputConnectorId, out Guid outputId))
+      {
+        NodeOutputViewModel output = new NodeOutputViewModel($"Output");
+        output.Guid = outputId;
+        _Outputs.Add(output);
+      }
+      else
+      {
+        _Outputs.Add(new NodeOutputViewModel($"Output"));
+      }
       if (Guid.TryParse(NodeId, out Guid id))
       {
         Guid = id;
@@ -73,26 +93,7 @@ namespace GMEPNodeGraph.ViewModels
       this.IsFuseOnly = IsFuseOnly;
       this.Position = Position;
       this.StatusId = StatusId;
-      if (Guid.TryParse(InputConnectorId, out Guid inputId))
-      {
-        NodeInputViewModel input = new NodeInputViewModel($"Input", true);
-        input.Guid = inputId;
-        _Inputs.Add(input);
-      }
-      else
-      {
-        _Inputs.Add(new NodeInputViewModel($"Input", true));
-      }
-      if (Guid.TryParse(OutputConnectorId, out Guid outputId))
-      {
-        NodeOutputViewModel output = new NodeOutputViewModel($"Output");
-        output.Guid = outputId;
-        _Outputs.Add(output);
-      }
-      else
-      {
-        _Outputs.Add(new NodeOutputViewModel($"Output"));
-      }
+
       PanelBusAmpVisible = Visibility.Visible;
       PoleVisible = Visibility.Visible;
       NodeType = NodeType.DistributionBreaker;
