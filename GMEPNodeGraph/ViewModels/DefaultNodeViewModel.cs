@@ -185,6 +185,13 @@ namespace GMEPNodeGraph.ViewModels
     }
     string _ParentId = string.Empty;
 
+    public bool Inheritable
+    {
+      get => _Inheritable;
+      set => RaisePropertyChangedIfSet(ref _Inheritable, value);
+    }
+    bool _Inheritable = false;
+
     public float PhaseA
     {
       get => _PhaseA;

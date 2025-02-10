@@ -97,6 +97,7 @@ namespace GMEPNodeGraph.ViewModels
       {
         _Outputs.Add(new NodeOutputViewModel($"Output"));
       }
+      Inheritable = true;
       this.Name = Name;
       this.Position = Position;
       this.IsMlo = IsMlo;

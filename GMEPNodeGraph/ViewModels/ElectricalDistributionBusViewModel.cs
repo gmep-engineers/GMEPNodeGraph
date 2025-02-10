@@ -36,6 +36,7 @@ namespace GMEPNodeGraph.ViewModels
       string OutputConnectorId
     )
     {
+      Inheritable = true;
       this.Id = Id;
       if (Guid.TryParse(InputConnectorId, out Guid inputId))
       {

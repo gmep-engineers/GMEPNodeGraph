@@ -521,10 +521,6 @@ namespace GMEPNodeGraph.ViewModels
 
     void Connected(ConnectedLinkOperationEventArgs param)
     {
-      Trace.WriteLine(param.InputConnectorGuid.ToString());
-      Trace.WriteLine(param.OutputConnectorGuid.ToString());
-      Trace.WriteLine(param.InputConnectorNodeGuid.ToString());
-      Trace.WriteLine(param.OutputConnectorNodeGuid.ToString());
       var nodeLink = new NodeLinkViewModel(
         Guid.NewGuid().ToString(),
         param.InputConnectorGuid.ToString(),
@@ -533,37 +529,59 @@ namespace GMEPNodeGraph.ViewModels
         param.OutputConnectorNodeGuid.ToString()
       );
       _NodeLinkViewModels.Add(nodeLink);
-
       CommandQueue.Enqueue(nodeLink.Create(ProjectId, db));
-
-      DefaultNodeViewModel childNode = _NodeViewModels.FirstOrDefault(arg =>
-        arg.Guid == param.InputConnectorNodeGuid
-      );
-      DefaultNodeViewModel parentNode = _NodeViewModels.FirstOrDefault(arg =>
-        arg.Guid == param.OutputConnectorNodeGuid
-      );
-
-      if (parentNode != null && childNode != null)
-      {
-        childNode.ParentId = parentNode.Id;
-      }
     }
 
     void Disconnected(DisconnectedLinkOperationEventArgs param)
     {
       var nodeLink = _NodeLinkViewModels.First(arg => arg.Guid == param.NodeLinkGuid);
       CommandQueue.Enqueue(nodeLink.Delete(db));
-      DefaultNodeViewModel childNode = _NodeViewModels.FirstOrDefault(arg =>
-        arg.Guid == param.InputConnectorNodeGuid
-      );
-      DefaultNodeViewModel parentNode = _NodeViewModels.FirstOrDefault(arg =>
-        arg.Guid == param.OutputConnectorNodeGuid
-      );
-      if (childNode != null)
-      {
-        childNode.ParentId = string.Empty;
-      }
       _NodeLinkViewModels.Remove(nodeLink);
+    }
+
+    void SetParentChildRels()
+    {
+      foreach (DefaultNodeViewModel node in _NodeViewModels)
+      {
+        node.ParentId = string.Empty;
+      }
+      foreach (NodeLinkViewModel link in _NodeLinkViewModels)
+      {
+        DefaultNodeViewModel childNode = _NodeViewModels.FirstOrDefault(arg =>
+          arg.Guid == link.InputConnectorNodeGuid
+        );
+        if (childNode != null)
+        {
+          if (childNode.Inheritable)
+          {
+            DefaultNodeViewModel parentNode = _NodeViewModels.FirstOrDefault(arg =>
+              arg.Guid == link.OutputConnectorNodeGuid
+            );
+
+            while (parentNode != null && !parentNode.Inheritable)
+            {
+              NodeLinkViewModel parentInputNodeLink = _NodeLinkViewModels.FirstOrDefault(arg =>
+                arg.InputConnectorNodeGuid == parentNode.Guid
+              );
+              if (parentInputNodeLink == null)
+              {
+                parentNode = null;
+              }
+              else
+              {
+                parentNode = _NodeViewModels.FirstOrDefault(arg =>
+                  arg.Guid == parentInputNodeLink.OutputConnectorNodeGuid
+                );
+              }
+            }
+
+            if (parentNode != null && childNode != null)
+            {
+              childNode.ParentId = parentNode.Id;
+            }
+          }
+        }
+      }
     }
 
     void NodesMoved(EndMoveNodesOperationEventArgs param) { }
@@ -622,6 +640,7 @@ namespace GMEPNodeGraph.ViewModels
 
     void Save()
     {
+      SetParentChildRels();
       db.OpenConnection();
       {
         while (CommandQueue.Count > 0)
@@ -644,6 +663,7 @@ namespace GMEPNodeGraph.ViewModels
         link.Update(db).ExecuteNonQuery();
       }
       db.CloseConnection();
+      Trace.WriteLine("Done");
     }
 
     void SaveAndClose()
