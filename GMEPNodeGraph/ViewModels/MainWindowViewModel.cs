@@ -127,6 +127,8 @@ namespace GMEPNodeGraph.ViewModels
     ViewModelCommandHandler _AddPanelBreakerCommand = new ViewModelCommandHandler();
     public ViewModelCommand AddPanelCommand => _AddPanelCommand.Get(AddPanel);
     ViewModelCommandHandler _AddPanelCommand = new ViewModelCommandHandler();
+    public ViewModelCommand AddDisconnectCommand => _AddDisconnectCommand.Get(AddDisconnect);
+    ViewModelCommandHandler _AddDisconnectCommand = new ViewModelCommandHandler();
 
     public ViewModelCommand AddTransformerCommand => _AddTransformerCommand.Get(AddTransformer);
     ViewModelCommandHandler _AddTransformerCommand = new ViewModelCommandHandler();
@@ -278,6 +280,11 @@ namespace GMEPNodeGraph.ViewModels
       _NodeLinkViewModels.Add(viewModel);
     }
 
+    public void LoadGroupNodeViewModel(GroupNodeViewModel viewModel)
+    {
+      _GroupNodeViewModels.Add(viewModel);
+    }
+
     void AddMainBreaker()
     {
       Point p = new Point((RightClickPoint.X - (Offset.X)), (RightClickPoint.Y - (Offset.Y)));
@@ -375,7 +382,7 @@ namespace GMEPNodeGraph.ViewModels
       ElectricalTransformerViewModel transformer = new ElectricalTransformerViewModel(
         Guid.NewGuid().ToString(),
         Guid.NewGuid().ToString(),
-        "Transformer",
+        "Xfmr",
         1,
         1,
         "#FFFFFFFF",
@@ -405,6 +412,24 @@ namespace GMEPNodeGraph.ViewModels
       panelBreaker.Create(ProjectId, db).ForEach(CommandQueue.Enqueue);
     }
 
+    void AddDisconnect()
+    {
+      Point p = new Point((RightClickPoint.X - (Offset.X)), (RightClickPoint.Y - (Offset.Y)));
+      ElectricalDisconnectViewModel panelBreaker = new ElectricalDisconnectViewModel(
+        Guid.NewGuid().ToString(),
+        Guid.NewGuid().ToString(),
+        1,
+        1,
+        3,
+        1,
+        p,
+        string.Empty,
+        string.Empty
+      );
+      _NodeViewModels.Add(panelBreaker);
+      panelBreaker.Create(ProjectId, db).ForEach(CommandQueue.Enqueue);
+    }
+
     void AddGroupNode()
     {
       Point p = new Point((RightClickPoint.X - (Offset.X)), (RightClickPoint.Y - (Offset.Y)));
@@ -416,7 +441,7 @@ namespace GMEPNodeGraph.ViewModels
         900
       );
       _GroupNodeViewModels.Add(group);
-      group.Create(ProjectId, db);
+      CommandQueue.Enqueue(group.Create(ProjectId, db));
     }
 
     void RemoveNodes()
@@ -441,7 +466,7 @@ namespace GMEPNodeGraph.ViewModels
       foreach (var removeGroup in removeGroups)
       {
         _GroupNodeViewModels.Remove(removeGroup);
-        removeGroup.Delete(db).ForEach(CommandQueue.Enqueue);
+        CommandQueue.Enqueue(removeGroup.Delete(db));
       }
     }
 
@@ -629,7 +654,7 @@ namespace GMEPNodeGraph.ViewModels
       ProjectVersions = db.GetProjectVersions(ProjectNo);
       ProjectVersions[0] += " (latest)";
 
-      List<GroupNodeViewModel> groupNodes = db.GetGroupNodes(ProjectId);
+      db.GetGroupNodes(ProjectId).ForEach(LoadGroupNodeViewModel);
       db.GetElectricalDistributionBreakers(ProjectId).ForEach(LoadNodeViewModel);
       db.GetElectricalDistributionBuses(ProjectId).ForEach(LoadNodeViewModel);
       db.GetElectricalMainBreakers(ProjectId).ForEach(LoadNodeViewModel);
@@ -637,6 +662,7 @@ namespace GMEPNodeGraph.ViewModels
       db.GetElectricalPanels(ProjectId).ForEach(LoadNodeViewModel);
       db.GetElectricalPanelBreakers(ProjectId).ForEach(LoadNodeViewModel);
       db.GetElectricalServices(ProjectId).ForEach(LoadNodeViewModel);
+      db.GetElectricalDisconnects(ProjectId).ForEach(LoadNodeViewModel);
       db.GetNodeLinks(ProjectId).ForEach(LoadNodeLinkViewModel);
       ProjectLoaded = true;
     }
@@ -668,6 +694,10 @@ namespace GMEPNodeGraph.ViewModels
       foreach (NodeLinkViewModel link in _NodeLinkViewModels)
       {
         link.Update(db).ExecuteNonQuery();
+      }
+      foreach (GroupNodeViewModel groupNode in _GroupNodeViewModels)
+      {
+        groupNode.Update(db).ExecuteNonQuery();
       }
       db.CloseConnection();
       Trace.WriteLine("Done");

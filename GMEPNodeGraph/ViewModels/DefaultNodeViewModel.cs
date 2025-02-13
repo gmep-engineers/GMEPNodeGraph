@@ -44,6 +44,7 @@ namespace GMEPNodeGraph.ViewModels
     Panel,
     PanelBreaker,
     Transformer,
+    Equipment,
   }
 
   public abstract class DefaultNodeViewModel : ViewModel, INodeViewModel
@@ -170,6 +171,20 @@ namespace GMEPNodeGraph.ViewModels
       set => RaisePropertyChangedIfSet(ref _KvaVisible, value);
     }
     Visibility _KvaVisible = Visibility.Collapsed;
+
+    public Visibility AfVisible
+    {
+      get => _AfVisible;
+      set => RaisePropertyChangedIfSet(ref _AfVisible, value);
+    }
+    Visibility _AfVisible = Visibility.Collapsed;
+
+    public Visibility AsVisible
+    {
+      get => _AsVisible;
+      set => RaisePropertyChangedIfSet(ref _AsVisible, value);
+    }
+    Visibility _AsVisible = Visibility.Collapsed;
 
     public string Id
     {

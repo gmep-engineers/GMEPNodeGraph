@@ -113,9 +113,8 @@ namespace GMEPNodeGraph.ViewModels
       this.InnerHeight = Height;
     }
 
-    public List<MySqlCommand> Create(string projectId, GmepDatabase db)
+    public MySqlCommand Create(string projectId, GmepDatabase db)
     {
-      List<MySqlCommand> commands = new List<MySqlCommand>();
       string query =
         @"
         INSERT INTO electrical_single_line_groups
@@ -129,18 +128,16 @@ namespace GMEPNodeGraph.ViewModels
       createGroupCommand.Parameters.AddWithValue("@locX", Position.X);
       createGroupCommand.Parameters.AddWithValue("@locY", Position.Y);
       createGroupCommand.Parameters.AddWithValue("@width", InnerWidth);
-      createGroupCommand.Parameters.AddWithValue("@width", InnerHeight);
+      createGroupCommand.Parameters.AddWithValue("@height", InnerHeight);
       createGroupCommand.Parameters.AddWithValue("@statusId", StatusId);
-      commands.Add(createGroupCommand);
-      return commands;
+      return createGroupCommand;
     }
 
-    public List<MySqlCommand> Update(GmepDatabase db)
+    public MySqlCommand Update(GmepDatabase db)
     {
-      List<MySqlCommand> commands = new List<MySqlCommand>();
       string query =
         @"
-        UPDATE electrical_transformers
+        UPDATE electrical_single_line_groups
         SET
         name = @name,
         loc_x = @locX,
@@ -158,22 +155,19 @@ namespace GMEPNodeGraph.ViewModels
       updateGroupCommand.Parameters.AddWithValue("@width", InnerWidth);
       updateGroupCommand.Parameters.AddWithValue("@height", InnerHeight);
       updateGroupCommand.Parameters.AddWithValue("@statusId", StatusId);
-      commands.Add(updateGroupCommand);
-      return commands;
+      return updateGroupCommand;
     }
 
-    public List<MySqlCommand> Delete(GmepDatabase db)
+    public MySqlCommand Delete(GmepDatabase db)
     {
-      List<MySqlCommand> commands = new List<MySqlCommand>();
       string query =
         @"
-        DELETE FROM electrical_transformers
+        DELETE FROM electrical_single_line_groups
         WHERE id = @id
         ";
       MySqlCommand deleteGroupCommand = new MySqlCommand(query, db.Connection);
       deleteGroupCommand.Parameters.AddWithValue("@id", Guid.ToString());
-      commands.Add(deleteGroupCommand);
-      return commands;
+      return deleteGroupCommand;
     }
   }
 }

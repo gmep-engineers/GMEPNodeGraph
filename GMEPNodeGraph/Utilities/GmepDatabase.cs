@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using GMEPNodeGraph.ViewModels;
@@ -487,6 +488,50 @@ namespace GMEPNodeGraph.Utilities
       return distributionBreakers;
     }
 
+    public List<ElectricalDisconnectViewModel> GetElectricalDisconnects(string projectId)
+    {
+      List<ElectricalDisconnectViewModel> disconnects = new List<ElectricalDisconnectViewModel>();
+      string query =
+        @"
+        SELECT
+        electrical_disconnects.id as disconnect_id,
+        electrical_disconnects.status_id,
+        electrical_disconnects.num_poles,
+        electrical_disconnects.as_size_id,
+        electrical_disconnects.af_size_id,
+        electrical_single_line_nodes.id as node_id,  
+        electrical_single_line_nodes.loc_x,   
+        electrical_single_line_nodes.loc_y,
+        electrical_single_line_nodes.input_connector_id,
+        electrical_single_line_nodes.output_connector_id
+        FROM electrical_disconnects
+        LEFT JOIN electrical_single_line_nodes ON electrical_single_line_nodes.id = electrical_disconnects.node_id
+        WHERE electrical_disconnects.project_id = @projectId
+        ";
+      OpenConnection();
+      MySqlCommand command = new MySqlCommand(query, Connection);
+      command.Parameters.AddWithValue("@projectId", projectId);
+      MySqlDataReader reader = command.ExecuteReader();
+      while (reader.Read())
+      {
+        disconnects.Add(
+          new ElectricalDisconnectViewModel(
+            GetSafeString(reader, "disconnect_id"),
+            GetSafeString(reader, "node_id"),
+            GetSafeInt(reader, "as_size_id"),
+            GetSafeInt(reader, "af_size_id"),
+            GetSafeInt(reader, "num_poles"),
+            GetSafeInt(reader, "status_id"),
+            new Point(GetSafeInt(reader, "loc_x"), GetSafeInt(reader, "loc_y")),
+            GetSafeString(reader, "input_connector_id"),
+            GetSafeString(reader, "output_connector_id")
+          )
+        );
+      }
+      CloseConnection();
+      return disconnects;
+    }
+
     public List<NodeLinkViewModel> GetNodeLinks(string projectId)
     {
       List<NodeLinkViewModel> nodeConnectors = new List<NodeLinkViewModel>();
@@ -500,6 +545,7 @@ namespace GMEPNodeGraph.Utilities
       MySqlDataReader reader = command.ExecuteReader();
       while (reader.Read())
       {
+        Trace.WriteLine(GetSafeString(reader, "id"));
         nodeConnectors.Add(
           new NodeLinkViewModel(
             reader.GetString("id"),

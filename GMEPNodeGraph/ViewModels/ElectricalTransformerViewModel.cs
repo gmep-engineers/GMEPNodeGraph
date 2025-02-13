@@ -123,7 +123,7 @@ namespace GMEPNodeGraph.ViewModels
         @"
         INSERT INTO electrical_transformers
         (id, parent_id, project_id, node_id, kva_id, voltage_id, name, color_code, status_id)
-        VALUES (@id, @projectId, @nodeId, @kvaId, @voltageId, @name, @colorCode, @statusId)
+        VALUES (@id, @parentId, @projectId, @nodeId, @kvaId, @voltageId, @name, @colorCode, @statusId)
         ";
       MySqlCommand createTransformerCommand = new MySqlCommand(query, db.Connection);
       createTransformerCommand.Parameters.AddWithValue("@id", Id);
@@ -147,6 +147,7 @@ namespace GMEPNodeGraph.ViewModels
         @"
         UPDATE electrical_transformers
         SET
+        node_id = @nodeId,
         parent_id = @parentId,
         kva_id = @kvaId,
         voltage_id = @voltageId,
@@ -157,6 +158,7 @@ namespace GMEPNodeGraph.ViewModels
         ";
       MySqlCommand updatePanelCommand = new MySqlCommand(query, db.Connection);
       updatePanelCommand.Parameters.AddWithValue("@id", Id);
+      updatePanelCommand.Parameters.AddWithValue("@nodeId", Guid.ToString());
       updatePanelCommand.Parameters.AddWithValue("@parentId", ParentId);
       updatePanelCommand.Parameters.AddWithValue("@kvaId", KvaId);
       updatePanelCommand.Parameters.AddWithValue("@voltageId", VoltageId);

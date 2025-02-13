@@ -27,6 +27,7 @@
             <MenuItem IsEnabled="{Binding ProjectLoaded}" Header="Add Distribution Breaker" Command="{Binding AddDistributionBreakerCommand}"/>
             <MenuItem IsEnabled="{Binding ProjectLoaded}" Header="Add Panel" Command="{Binding AddPanelCommand}"/>
             <MenuItem IsEnabled="{Binding ProjectLoaded}" Header="Add Panel Breaker" Command="{Binding AddPanelBreakerCommand}"/>
+            <MenuItem IsEnabled="{Binding ProjectLoaded}" Header="Add Disconnect" Command="{Binding AddDisconnectCommand}"/>
             <MenuItem IsEnabled="{Binding ProjectLoaded}" Header="Add Transformer" Command="{Binding AddTransformerCommand}"/>
             <MenuItem IsEnabled="{Binding ProjectLoaded}" Header="Add Section" Command="{Binding AddGroupNodeCommand}"/>
             <MenuItem IsEnabled="{Binding ProjectLoaded}" Header="Remove Selected" Command="{Binding RemoveNodesCommand}"/>
@@ -83,7 +84,7 @@
                     <DataTemplate>
                         <StackPanel Margin="5 5" VerticalAlignment="Center">
                             <!-- put voltage and amperage dropdown here-->
-                            <ComboBox Width="65" SelectedValue="{Binding Path=StatusId}" SelectedValuePath="Tag" >
+                            <ComboBox Width="70" SelectedValue="{Binding Path=StatusId}" SelectedValuePath="Tag" >
                                 <ComboBoxItem Tag="1">(N)</ComboBoxItem>
                                 <ComboBoxItem Tag="2">(E)</ComboBoxItem>
                                 <ComboBoxItem Tag="3">(R)</ComboBoxItem>
@@ -103,7 +104,7 @@
                                 <ComboBoxItem Tag="12">4000A</ComboBoxItem>
                             </ComboBox>
                             <Label Foreground="#FFF" Visibility="{Binding PanelAmpLabelsVisible}">Main Size</Label>
-                            <ComboBox Width="65" Visibility="{Binding PanelMainAmpVisible}" SelectedValue="{Binding Path=MainAmpRatingId}" SelectedValuePath="Tag" >
+                            <ComboBox Width="70" Visibility="{Binding PanelMainAmpVisible}" SelectedValue="{Binding Path=MainAmpRatingId}" SelectedValuePath="Tag" >
                                 <ComboBox.Style>
                                     <Style TargetType="ComboBox">
                                         <Setter Property="IsEnabled" Value="True"/>
@@ -132,7 +133,7 @@
                             </ComboBox>
                             <CheckBox IsChecked="{Binding IsMlo}" Foreground="#FFF" Visibility="{Binding MloVisible}" Margin="5 5 5 5" >M.L.O.</CheckBox>
                             <Label Foreground="#FFF" Visibility="{Binding PanelAmpLabelsVisible}">Bus Size</Label>
-                            <ComboBox Width="65" Visibility="{Binding PanelBusAmpVisible}" SelectedValue="{Binding Path=PanelAmpRatingId}" SelectedValuePath="Tag" >
+                            <ComboBox Width="70" Visibility="{Binding PanelBusAmpVisible}" SelectedValue="{Binding Path=PanelAmpRatingId}" SelectedValuePath="Tag" >
                                 <ComboBoxItem Tag="1">60A</ComboBoxItem>
                                 <ComboBoxItem Tag="2">100A</ComboBoxItem>
                                 <ComboBoxItem Tag="3">125A</ComboBoxItem>
@@ -154,10 +155,46 @@
                                 <ComboBoxItem Tag="4">120/240-3Φ</ComboBoxItem>
                                 <ComboBoxItem Tag="5">120/208-1Φ</ComboBoxItem>
                             </ComboBox>
-                            <ComboBox Width="65" Visibility="{Binding PoleVisible}" SelectedValue="{Binding Path=NumPoles}" SelectedValuePath="Tag" >
-                                <ComboBoxItem Tag="1">3P</ComboBoxItem>
+                            <ComboBox Width="70" Visibility="{Binding AsVisible}"  SelectedValue="{Binding Path=AsSizeId}" SelectedValuePath="Tag" >
+                                <ComboBoxItem Tag="1">30 AS</ComboBoxItem>
+                                <ComboBoxItem Tag="2">60 AS</ComboBoxItem>
+                                <ComboBoxItem Tag="3">100 AS</ComboBoxItem>
+                                <ComboBoxItem Tag="4">200 AS</ComboBoxItem>
+                                <ComboBoxItem Tag="5">400 AS</ComboBoxItem>
+                                <ComboBoxItem Tag="6">600 AS</ComboBoxItem>
+                            </ComboBox>
+                            <ComboBox Width="70" Visibility="{Binding AfVisible}"  SelectedValue="{Binding Path=AfSizeId}" SelectedValuePath="Tag" >
+                                <ComboBoxItem Tag="1">15 AF</ComboBoxItem>
+                                <ComboBoxItem Tag="2">20 AF</ComboBoxItem>
+                                <ComboBoxItem Tag="3">25 AF</ComboBoxItem>
+                                <ComboBoxItem Tag="4">30 AF</ComboBoxItem>
+                                <ComboBoxItem Tag="5">35 AF</ComboBoxItem>
+                                <ComboBoxItem Tag="6">40 AF</ComboBoxItem>
+                                <ComboBoxItem Tag="7">45 AF</ComboBoxItem>
+                                <ComboBoxItem Tag="8">50 AF</ComboBoxItem>
+                                <ComboBoxItem Tag="9">60 AF</ComboBoxItem>
+                                <ComboBoxItem Tag="10">70 AF</ComboBoxItem>
+                                <ComboBoxItem Tag="11">80 AF</ComboBoxItem>
+                                <ComboBoxItem Tag="12">90 AF</ComboBoxItem>
+                                <ComboBoxItem Tag="13">100 AF</ComboBoxItem>
+                                <ComboBoxItem Tag="14">110 AF</ComboBoxItem>
+                                <ComboBoxItem Tag="15">125 AF</ComboBoxItem>
+                                <ComboBoxItem Tag="16">150 AF</ComboBoxItem>
+                                <ComboBoxItem Tag="17">175 AF</ComboBoxItem>
+                                <ComboBoxItem Tag="18">200 AF</ComboBoxItem>
+                                <ComboBoxItem Tag="19">225 AF</ComboBoxItem>
+                                <ComboBoxItem Tag="20">250 AF</ComboBoxItem>
+                                <ComboBoxItem Tag="21">300 AF</ComboBoxItem>
+                                <ComboBoxItem Tag="22">350 AF</ComboBoxItem>
+                                <ComboBoxItem Tag="23">400 AF</ComboBoxItem>
+                                <ComboBoxItem Tag="24">450 AF</ComboBoxItem>
+                                <ComboBoxItem Tag="25">500 AF</ComboBoxItem>
+                                <ComboBoxItem Tag="26">600 AF</ComboBoxItem>
+                            </ComboBox>
+                            <ComboBox Width="70" Visibility="{Binding PoleVisible}" SelectedValue="{Binding Path=NumPoles}" SelectedValuePath="Tag" >
+                                <ComboBoxItem Tag="1">1P</ComboBoxItem>
                                 <ComboBoxItem Tag="2">2P</ComboBoxItem>
-                                <ComboBoxItem Tag="3">1P</ComboBoxItem>
+                                <ComboBoxItem Tag="3">3P</ComboBoxItem>
                             </ComboBox>
                             <CheckBox Foreground="#FFF" Visibility="{Binding CtsVisible}" IsChecked="{Binding HasCts}" >CTS</CheckBox>
                             <CheckBox Foreground="#FFF" Visibility="{Binding FuseOnlyVisible}" IsChecked="{Binding IsFuseOnly}" >Fuse Only</CheckBox>
@@ -184,6 +221,7 @@
                                 <ComboBoxItem Tag="10">2000 KVA</ComboBoxItem>
                                 <ComboBoxItem Tag="11">2500 KVA</ComboBoxItem> 
                             </ComboBox>
+                            
                         </StackPanel>
                     </DataTemplate>
                 </Setter.Value>
