@@ -27,10 +27,10 @@ namespace GMEPNodeGraph.ViewModels
     bool _IsFuseOnly = false;
     public int PanelAmpRatingId
     {
-      get => _BusAmpRatingId;
-      set => RaisePropertyChangedIfSet(ref _BusAmpRatingId, value);
+      get => _PanelAmpRatingId;
+      set => RaisePropertyChangedIfSet(ref _PanelAmpRatingId, value);
     }
-    int _BusAmpRatingId = 1;
+    int _PanelAmpRatingId = 1;
     public override IEnumerable<NodeConnectorViewModel> Inputs => _Inputs;
     readonly ObservableCollection<NodeInputViewModel> _Inputs =
       new ObservableCollection<NodeInputViewModel>();
@@ -41,8 +41,9 @@ namespace GMEPNodeGraph.ViewModels
 
     public ElectricalDistributionBreakerViewModel(
       string Id,
+      string ProjectId,
       string NodeId,
-      int PanelAmpRatingId,
+      int AmpRatingId,
       int NumPoles,
       bool IsFuseOnly,
       int StatusId,
@@ -88,7 +89,7 @@ namespace GMEPNodeGraph.ViewModels
         updateNodeCommand[1].ExecuteNonQuery();
         db.CloseConnection();
       }
-      this.PanelAmpRatingId = PanelAmpRatingId;
+      this.PanelAmpRatingId = AmpRatingId;
       this.NumPoles = NumPoles;
       this.IsFuseOnly = IsFuseOnly;
       this.Position = Position;

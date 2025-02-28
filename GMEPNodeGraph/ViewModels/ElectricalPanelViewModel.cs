@@ -59,6 +59,7 @@ namespace GMEPNodeGraph.ViewModels
 
     public ElectricalPanelViewModel(
       string Id,
+      string ProjectId,
       string NodeId,
       string Name,
       int VoltageId,

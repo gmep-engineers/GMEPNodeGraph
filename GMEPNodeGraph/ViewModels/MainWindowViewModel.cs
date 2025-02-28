@@ -18,6 +18,7 @@ using Livet;
 using Livet.Commands;
 using Microsoft.Win32;
 using MySql.Data.MySqlClient;
+using Mysqlx.Crud;
 using NodeGraph.NET6.Controls;
 using NodeGraph.NET6.Operation;
 using NodeGraph.Utilities;
@@ -290,6 +291,7 @@ namespace GMEPNodeGraph.ViewModels
       Point p = new Point((RightClickPoint.X - (Offset.X)), (RightClickPoint.Y - (Offset.Y)));
       ElectricalMainBreakerViewModel mainBreaker = new ElectricalMainBreakerViewModel(
         Guid.NewGuid().ToString(),
+        ProjectId,
         Guid.NewGuid().ToString(),
         1,
         3,
@@ -309,6 +311,7 @@ namespace GMEPNodeGraph.ViewModels
       Point p = new Point((RightClickPoint.X - (Offset.X)), (RightClickPoint.Y - (Offset.Y)));
       ElectricalMeterViewModel meter = new ElectricalMeterViewModel(
         Guid.NewGuid().ToString(),
+        ProjectId,
         Guid.NewGuid().ToString(),
         false,
         1,
@@ -325,6 +328,7 @@ namespace GMEPNodeGraph.ViewModels
       Point p = new Point((RightClickPoint.X - (Offset.X)), (RightClickPoint.Y - (Offset.Y)));
       ElectricalDistributionBusViewModel distributionBus = new ElectricalDistributionBusViewModel(
         Guid.NewGuid().ToString(),
+        ProjectId,
         Guid.NewGuid().ToString(),
         1,
         1,
@@ -341,6 +345,7 @@ namespace GMEPNodeGraph.ViewModels
       Point p = new Point((RightClickPoint.X - (Offset.X)), (RightClickPoint.Y - (Offset.Y)));
       ElectricalPanelViewModel panel = new ElectricalPanelViewModel(
         Guid.NewGuid().ToString(),
+        ProjectId,
         Guid.NewGuid().ToString(),
         "Panel",
         1,
@@ -363,6 +368,7 @@ namespace GMEPNodeGraph.ViewModels
       ElectricalDistributionBreakerViewModel distributionBreaker =
         new ElectricalDistributionBreakerViewModel(
           Guid.NewGuid().ToString(),
+          ProjectId,
           Guid.NewGuid().ToString(),
           1,
           3,
@@ -381,6 +387,7 @@ namespace GMEPNodeGraph.ViewModels
       Point p = new Point((RightClickPoint.X - (Offset.X)), (RightClickPoint.Y - (Offset.Y)));
       ElectricalTransformerViewModel transformer = new ElectricalTransformerViewModel(
         Guid.NewGuid().ToString(),
+        ProjectId,
         Guid.NewGuid().ToString(),
         "Xfmr",
         1,
@@ -400,6 +407,7 @@ namespace GMEPNodeGraph.ViewModels
       Point p = new Point((RightClickPoint.X - (Offset.X)), (RightClickPoint.Y - (Offset.Y)));
       ElectricalPanelBreakerViewModel panelBreaker = new ElectricalPanelBreakerViewModel(
         Guid.NewGuid().ToString(),
+        ProjectId,
         Guid.NewGuid().ToString(),
         1,
         3,
@@ -417,6 +425,7 @@ namespace GMEPNodeGraph.ViewModels
       Point p = new Point((RightClickPoint.X - (Offset.X)), (RightClickPoint.Y - (Offset.Y)));
       ElectricalDisconnectViewModel panelBreaker = new ElectricalDisconnectViewModel(
         Guid.NewGuid().ToString(),
+        ProjectId,
         Guid.NewGuid().ToString(),
         1,
         1,

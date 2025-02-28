@@ -55,6 +55,7 @@ namespace GMEPNodeGraph.ViewModels
 
     public ElectricalDisconnectViewModel(
       string Id,
+      string ProjectId,
       string NodeId,
       int AsSizeId,
       int AfSizeId,
@@ -112,6 +113,7 @@ namespace GMEPNodeGraph.ViewModels
       AsVisible = Visibility.Visible;
       PoleVisible = Visibility.Visible;
       NodeType = NodeType.Equipment;
+      Inheritable = true;
     }
 
     public override List<MySqlCommand> Create(string projectId, GmepDatabase db)

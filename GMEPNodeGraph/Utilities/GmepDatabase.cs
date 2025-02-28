@@ -162,11 +162,11 @@ namespace GMEPNodeGraph.Utilities
       {
         groups.Add(
           new GroupNodeViewModel(
-            reader.GetString("id"),
-            reader.GetString("name"),
-            new Point(reader.GetInt32("loc_x"), reader.GetInt32("loc_y")),
-            reader.GetInt32("width"),
-            reader.GetInt32("height")
+            GetSafeString(reader, "id"),
+            GetSafeString(reader, "name"),
+            new Point(GetSafeInt(reader, "loc_x"), GetSafeInt(reader, "loc_y")),
+            GetSafeInt(reader, "width"),
+            GetSafeInt(reader, "height")
           )
         );
       }
@@ -244,11 +244,12 @@ namespace GMEPNodeGraph.Utilities
       {
         meters.Add(
           new ElectricalMeterViewModel(
-            reader.GetString("meter_id"),
-            reader.GetString("node_id"),
-            reader.GetBoolean("has_cts"),
-            reader.GetInt32("status_id"),
-            new Point(reader.GetInt32("loc_x"), reader.GetInt32("loc_y")),
+            GetSafeString(reader, "meter_id"),
+            projectId,
+            GetSafeString(reader, "node_id"),
+            GetSafeBoolean(reader, "has_cts"),
+            GetSafeInt(reader, "status_id"),
+            new Point(GetSafeInt(reader, "loc_x"), GetSafeInt(reader, "loc_y")),
             GetSafeString(reader, "input_connector_id"),
             GetSafeString(reader, "output_connector_id")
           )
@@ -289,14 +290,15 @@ namespace GMEPNodeGraph.Utilities
       {
         mainBreakers.Add(
           new ElectricalMainBreakerViewModel(
-            reader.GetString("breaker_id"),
-            reader.GetString("node_id"),
-            reader.GetInt32("amp_rating_id"),
-            reader.GetInt32("num_poles"),
-            reader.GetBoolean("has_ground_fault_protection"),
-            reader.GetBoolean("has_surge_protection"),
-            reader.GetInt32("status_id"),
-            new Point(reader.GetInt32("loc_x"), reader.GetInt32("loc_y")),
+            GetSafeString(reader, "breaker_id"),
+            projectId,
+            GetSafeString(reader, "node_id"),
+            GetSafeInt(reader, "amp_rating_id"),
+            GetSafeInt(reader, "num_poles"),
+            GetSafeBoolean(reader, "has_ground_fault_protection"),
+            GetSafeBoolean(reader, "has_surge_protection"),
+            GetSafeInt(reader, "status_id"),
+            new Point(GetSafeInt(reader, "loc_x"), GetSafeInt(reader, "loc_y")),
             GetSafeString(reader, "input_connector_id"),
             GetSafeString(reader, "output_connector_id")
           )
@@ -333,11 +335,12 @@ namespace GMEPNodeGraph.Utilities
       {
         distributionBuses.Add(
           new ElectricalDistributionBusViewModel(
-            reader.GetString("dist_bus_id"),
-            reader.GetString("node_id"),
-            reader.GetInt32("amp_rating_id"),
-            reader.GetInt32("status_id"),
-            new Point(reader.GetInt32("loc_x"), reader.GetInt32("loc_y")),
+            GetSafeString(reader, "dist_bus_id"),
+            projectId,
+            GetSafeString(reader, "node_id"),
+            GetSafeInt(reader, "amp_rating_id"),
+            GetSafeInt(reader, "status_id"),
+            new Point(GetSafeInt(reader, "loc_x"), GetSafeInt(reader, "loc_y")),
             GetSafeString(reader, "input_connector_id"),
             GetSafeString(reader, "output_connector_id")
           )
@@ -378,13 +381,14 @@ namespace GMEPNodeGraph.Utilities
       {
         distributionBreakers.Add(
           new ElectricalDistributionBreakerViewModel(
-            reader.GetString("dist_bkr_id"),
-            reader.GetString("node_id"),
-            reader.GetInt32("amp_rating_id"),
-            reader.GetInt32("num_poles"),
-            reader.GetBoolean("is_fuse_only"),
-            reader.GetInt32("status_id"),
-            new Point(reader.GetInt32("loc_x"), reader.GetInt32("loc_y")),
+            GetSafeString(reader, "dist_bkr_id"),
+            projectId,
+            GetSafeString(reader, "node_id"),
+            GetSafeInt(reader, "amp_rating_id"),
+            GetSafeInt(reader, "num_poles"),
+            GetSafeBoolean(reader, "is_fuse_only"),
+            GetSafeInt(reader, "status_id"),
+            new Point(GetSafeInt(reader, "loc_x"), GetSafeInt(reader, "loc_y")),
             GetSafeString(reader, "input_connector_id"),
             GetSafeString(reader, "output_connector_id")
           )
@@ -427,6 +431,7 @@ namespace GMEPNodeGraph.Utilities
         panels.Add(
           new ElectricalPanelViewModel(
             GetSafeString(reader, "panel_id"),
+            projectId,
             GetSafeString(reader, "node_id"),
             GetSafeString(reader, "name"),
             GetSafeInt(reader, "voltage_id"),
@@ -474,6 +479,7 @@ namespace GMEPNodeGraph.Utilities
         distributionBreakers.Add(
           new ElectricalPanelBreakerViewModel(
             GetSafeString(reader, "panel_bkr_id"),
+            projectId,
             GetSafeString(reader, "node_id"),
             GetSafeInt(reader, "amp_rating_id"),
             GetSafeInt(reader, "num_poles"),
@@ -517,6 +523,7 @@ namespace GMEPNodeGraph.Utilities
         disconnects.Add(
           new ElectricalDisconnectViewModel(
             GetSafeString(reader, "disconnect_id"),
+            projectId,
             GetSafeString(reader, "node_id"),
             GetSafeInt(reader, "as_size_id"),
             GetSafeInt(reader, "af_size_id"),
@@ -545,14 +552,13 @@ namespace GMEPNodeGraph.Utilities
       MySqlDataReader reader = command.ExecuteReader();
       while (reader.Read())
       {
-        Trace.WriteLine(GetSafeString(reader, "id"));
         nodeConnectors.Add(
           new NodeLinkViewModel(
-            reader.GetString("id"),
-            reader.GetString("input_connector_id"),
-            reader.GetString("output_connector_id"),
-            reader.GetString("input_connector_node_id"),
-            reader.GetString("output_connector_node_id")
+            GetSafeString(reader, "id"),
+            GetSafeString(reader, "input_connector_id"),
+            GetSafeString(reader, "output_connector_id"),
+            GetSafeString(reader, "input_connector_node_id"),
+            GetSafeString(reader, "output_connector_node_id")
           )
         );
       }

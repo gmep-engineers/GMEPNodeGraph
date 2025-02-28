@@ -28,6 +28,7 @@ namespace GMEPNodeGraph.ViewModels
 
     public ElectricalMeterViewModel(
       string Id,
+      string ProjectId,
       string NodeId,
       bool HasCts,
       int StatusId,

@@ -43,13 +43,14 @@ namespace GMEPNodeGraph.ViewModels
 
     public ElectricalTransformerViewModel(
       string Id,
+      string ProjectId,
       string NodeId,
       string Name,
       int VoltageId,
       int KvaId,
       string ColorCode,
       int StatusId,
-      Point position,
+      Point Position,
       string InputConnectorId,
       string OutputConnectorId
     )
@@ -99,7 +100,7 @@ namespace GMEPNodeGraph.ViewModels
 
       KvaVisible = Visibility.Visible;
       TransformerVoltageVisible = Visibility.Visible;
-      Position = position;
+      this.Position = Position;
       this.StatusId = StatusId;
       NodeType = NodeType.Transformer;
     }

@@ -47,6 +47,7 @@ namespace GMEPNodeGraph.ViewModels
 
     public ElectricalMainBreakerViewModel(
       string Id,
+      string ProjectId,
       string NodeId,
       int AmpRatingId,
       int NumPoles,

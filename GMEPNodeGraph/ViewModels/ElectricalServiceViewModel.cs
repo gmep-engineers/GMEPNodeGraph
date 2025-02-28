@@ -15,12 +15,6 @@ namespace GMEPNodeGraph.ViewModels
 {
   public class ElectricalServiceViewModel : DefaultNodeViewModel
   {
-    public string Body
-    {
-      get => _Body;
-      set => RaisePropertyChangedIfSet(ref _Body, value);
-    }
-    string _Body = string.Empty;
 
     public int VoltageId
     {
