@@ -18,6 +18,13 @@ namespace GMEPNodeGraph.ViewModels
       set => RaisePropertyChangedIfSet(ref _HasCts, value);
     }
     bool _HasCts = false;
+
+    public bool IsSpace
+    {
+      get => _IsSpace;
+      set => RaisePropertyChangedIfSet(ref _IsSpace, value);
+    }
+    bool _IsSpace = false;
     public override IEnumerable<NodeConnectorViewModel> Inputs => _Inputs;
     readonly ObservableCollection<NodeInputViewModel> _Inputs =
       new ObservableCollection<NodeInputViewModel>();
@@ -31,6 +38,7 @@ namespace GMEPNodeGraph.ViewModels
       string ProjectId,
       string NodeId,
       bool HasCts,
+      bool IsSpace,
       int StatusId,
       Point Position,
       string InputConnectorId,
@@ -76,9 +84,11 @@ namespace GMEPNodeGraph.ViewModels
       this.Id = Id;
       this.Position = Position;
       this.HasCts = HasCts;
+      this.IsSpace = IsSpace;
       this.StatusId = StatusId;
 
       CtsVisible = Visibility.Visible;
+      IsSpaceVisible = Visibility.Visible;
       Name = "Meter";
       NodeType = NodeType.Meter;
     }
@@ -101,14 +111,15 @@ namespace GMEPNodeGraph.ViewModels
       string query =
         @"
         INSERT INTO electrical_meters
-        (id, project_id, node_id, has_cts, status_id)
-        VALUES (@id, @projectId, @nodeId, @hasCts, @statusId)
+        (id, project_id, node_id, has_cts, is_space, status_id)
+        VALUES (@id, @projectId, @nodeId, @hasCts, @isSpace, @statusId)
         ";
       MySqlCommand createBreakerCommand = new MySqlCommand(query, db.Connection);
       createBreakerCommand.Parameters.AddWithValue("@id", Id);
       createBreakerCommand.Parameters.AddWithValue("@nodeId", Guid.ToString());
       createBreakerCommand.Parameters.AddWithValue("@projectId", projectId);
       createBreakerCommand.Parameters.AddWithValue("@hasCts", HasCts);
+      createBreakerCommand.Parameters.AddWithValue("@isSpace", IsSpace);
       createBreakerCommand.Parameters.AddWithValue("@statusId", StatusId);
       commands.Add(createBreakerCommand);
       commands.Add(GetCreateNodeCommand(projectId, db));
@@ -121,13 +132,14 @@ namespace GMEPNodeGraph.ViewModels
       string query =
         @"
         UPDATE electrical_meters
-        SET node_id = @nodeId, has_cts = @hasCts, status_id = @statusId
+        SET node_id = @nodeId, has_cts = @hasCts, is_space = @isSpace, status_id = @statusId
         WHERE id = @id
         ";
       MySqlCommand updateBreakerCommand = new MySqlCommand(query, db.Connection);
       updateBreakerCommand.Parameters.AddWithValue("@id", Id);
       updateBreakerCommand.Parameters.AddWithValue("@nodeId", Guid.ToString());
       updateBreakerCommand.Parameters.AddWithValue("@hasCts", HasCts);
+      updateBreakerCommand.Parameters.AddWithValue("@isSpace", IsSpace);
       updateBreakerCommand.Parameters.AddWithValue("@statusId", StatusId);
       commands.Add(updateBreakerCommand);
       commands.Add(GetUpdateNodeCommand(db));

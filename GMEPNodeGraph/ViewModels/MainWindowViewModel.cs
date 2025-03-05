@@ -278,7 +278,11 @@ namespace GMEPNodeGraph.ViewModels
 
     public void LoadNodeLinkViewModel(NodeLinkViewModel viewModel)
     {
-      _NodeLinkViewModels.Add(viewModel);
+      try
+      {
+        _NodeLinkViewModels.Add(viewModel);
+      }
+      catch (Exception ex) { }
     }
 
     public void LoadGroupNodeViewModel(GroupNodeViewModel viewModel)
@@ -313,6 +317,7 @@ namespace GMEPNodeGraph.ViewModels
         Guid.NewGuid().ToString(),
         ProjectId,
         Guid.NewGuid().ToString(),
+        false,
         false,
         1,
         p,

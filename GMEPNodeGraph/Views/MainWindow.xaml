@@ -197,6 +197,7 @@
                                 <ComboBoxItem Tag="3">3P</ComboBoxItem>
                             </ComboBox>
                             <CheckBox Foreground="#FFF" Visibility="{Binding CtsVisible}" IsChecked="{Binding HasCts}" >CTS</CheckBox>
+                            <CheckBox Foreground="#FFF" Visibility="{Binding IsSpaceVisible}" IsChecked="{Binding IsSpace}" >Space</CheckBox>
                             <CheckBox Foreground="#FFF" Visibility="{Binding FuseOnlyVisible}" IsChecked="{Binding IsFuseOnly}" >Fuse Only</CheckBox>
                             <ComboBox Width="135" Visibility="{Binding TransformerVoltageVisible}" SelectedValue="{Binding Path=VoltageId}" SelectedValuePath="Tag" >
                                 <ComboBoxItem Tag="1">480V-120/208V-3Φ</ComboBoxItem>

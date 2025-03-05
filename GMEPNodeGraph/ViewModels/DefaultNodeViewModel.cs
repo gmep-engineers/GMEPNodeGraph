@@ -130,6 +130,13 @@ namespace GMEPNodeGraph.ViewModels
     }
     Visibility _CtsVisible = Visibility.Collapsed;
 
+    public Visibility IsSpaceVisible
+    {
+      get => _IsSpaceVisible;
+      set => RaisePropertyChangedIfSet(ref _IsSpaceVisible, value);
+    }
+    Visibility _IsSpaceVisible = Visibility.Collapsed;
+
     public Visibility PanelAmpLabelsVisible
     {
       get => _PanelAmpLabelsVisible;

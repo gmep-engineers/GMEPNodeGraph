@@ -226,6 +226,7 @@ namespace GMEPNodeGraph.Utilities
         SELECT
         electrical_meters.id as meter_id,
         electrical_meters.has_cts,
+        electrical_meters.is_space,
         electrical_meters.status_id,
         electrical_single_line_nodes.id as node_id,  
         electrical_single_line_nodes.loc_x,   
@@ -248,6 +249,7 @@ namespace GMEPNodeGraph.Utilities
             projectId,
             GetSafeString(reader, "node_id"),
             GetSafeBoolean(reader, "has_cts"),
+            GetSafeBoolean(reader, "is_space"),
             GetSafeInt(reader, "status_id"),
             new Point(GetSafeInt(reader, "loc_x"), GetSafeInt(reader, "loc_y")),
             GetSafeString(reader, "input_connector_id"),
