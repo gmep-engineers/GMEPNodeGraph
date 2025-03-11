@@ -73,7 +73,7 @@
                     <DataTemplate>
                         <StackPanel Background="#FF666666">
                             <StackPanel HorizontalAlignment="Center">
-                                <TextBox Background="#FF666666" BorderThickness="2" MaxLength="15" BorderBrush="#FF666666" Text="{Binding Name}" />
+                                <TextBox Background="#FF666666" BorderThickness="2" MaxLength="15" BorderBrush="#FF666666" Text="{Binding Name}" Foreground="White" />
                             </StackPanel>
                         </StackPanel>
                     </DataTemplate>
@@ -247,7 +247,7 @@
                     <DataTemplate>
                         <StackPanel Background="#FF666666">
                             <StackPanel HorizontalAlignment="Center">
-                                <TextBox Background="#FF666666" BorderThickness="2" BorderBrush="#FF666666" Text="{Binding Name}" />
+                                <TextBox Background="#FF666666" BorderThickness="2" BorderBrush="#FF666666" Text="{Binding Name}" Foreground="White"/>
                             </StackPanel>
                         </StackPanel>
                     </DataTemplate>
