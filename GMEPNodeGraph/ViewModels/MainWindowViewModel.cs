@@ -282,7 +282,11 @@ namespace GMEPNodeGraph.ViewModels
       {
         _NodeLinkViewModels.Add(viewModel);
       }
-      catch (Exception ex) { }
+      catch (Exception ex)
+      {
+        // delete node link in the DB not connected to any equip
+        CommandQueue.Enqueue(viewModel.Delete(db));
+      }
     }
 
     public void LoadGroupNodeViewModel(GroupNodeViewModel viewModel)
@@ -470,11 +474,15 @@ namespace GMEPNodeGraph.ViewModels
           arg.InputConnectorNodeGuid == removeNode.Guid
           || arg.OutputConnectorNodeGuid == removeNode.Guid
         );
-        if (removeNodeLink != null)
+        while (removeNodeLink != null)
         {
           CommandQueue.Enqueue(removeNodeLink.Delete(db));
+          _NodeLinkViewModels.Remove(removeNodeLink);
+          removeNodeLink = NodeLinkViewModels.FirstOrDefault(arg =>
+            arg.InputConnectorNodeGuid == removeNode.Guid
+            || arg.OutputConnectorNodeGuid == removeNode.Guid
+          );
         }
-        _NodeLinkViewModels.Remove(removeNodeLink);
       }
       var removeGroups = _GroupNodeViewModels.Where(arg => arg.IsSelected).ToArray();
       foreach (var removeGroup in removeGroups)
@@ -677,8 +685,10 @@ namespace GMEPNodeGraph.ViewModels
       db.GetElectricalPanelBreakers(ProjectId).ForEach(LoadNodeViewModel);
       db.GetElectricalServices(ProjectId).ForEach(LoadNodeViewModel);
       db.GetElectricalDisconnects(ProjectId).ForEach(LoadNodeViewModel);
+      db.GetElectricalTransformers(ProjectId).ForEach(LoadNodeViewModel);
       db.GetNodeLinks(ProjectId).ForEach(LoadNodeLinkViewModel);
       ProjectLoaded = true;
+      Save();
     }
 
     void Save()

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -75,6 +76,7 @@ namespace GMEPNodeGraph.ViewModels
     public string Comment
     {
       get => $"Width = {(InnerWidth + 4) / 10:F0}, Height = {(InnerHeight + 4) / 10:F0}";
+      //get => "";
     }
 
     public bool IsSelected
@@ -110,7 +112,7 @@ namespace GMEPNodeGraph.ViewModels
       this.Name = Name;
       this.Position = Position;
       this.InnerWidth = Width;
-      this.InnerHeight = Height;
+      this.InnerHeight = Height + 21; // for some reason, height keeps reducing by exactly 21, so add 21 back
     }
 
     public MySqlCommand Create(string projectId, GmepDatabase db)

@@ -541,6 +541,55 @@ namespace GMEPNodeGraph.Utilities
       return disconnects;
     }
 
+    public List<ElectricalTransformerViewModel> GetElectricalTransformers(string projectId)
+    {
+      List<ElectricalTransformerViewModel> transformers =
+        new List<ElectricalTransformerViewModel>();
+      string query =
+        @"
+        SELECT
+        electrical_transformers.id as transformer_id,
+        electrical_transformers.status_id,
+        electrical_transformers.kva_id,
+        electrical_transformers.voltage_id,
+        electrical_transformers.name,
+        electrical_transformers.color_code,
+        electrical_single_line_nodes.id as node_id,  
+        electrical_single_line_nodes.loc_x,   
+        electrical_single_line_nodes.loc_y,
+        electrical_single_line_nodes.input_connector_id,
+        electrical_single_line_nodes.output_connector_id
+        FROM electrical_transformers
+        LEFT JOIN electrical_single_line_nodes ON electrical_single_line_nodes.id = electrical_transformers.node_id
+        WHERE electrical_transformers.project_id = @projectId
+        ";
+      OpenConnection();
+
+      MySqlCommand command = new MySqlCommand(query, Connection);
+      command.Parameters.AddWithValue("@projectId", projectId);
+      MySqlDataReader reader = command.ExecuteReader();
+      while (reader.Read())
+      {
+        transformers.Add(
+          new ElectricalTransformerViewModel(
+            GetSafeString(reader, "transformer_id"),
+            projectId,
+            GetSafeString(reader, "node_id"),
+            GetSafeString(reader, "name"),
+            GetSafeInt(reader, "voltage_id"),
+            GetSafeInt(reader, "kva_id"),
+            GetSafeString(reader, "color_code"),
+            GetSafeInt(reader, "status_id"),
+            new Point(GetSafeInt(reader, "loc_x"), GetSafeInt(reader, "loc_y")),
+            GetSafeString(reader, "input_connector_id"),
+            GetSafeString(reader, "output_connector_id")
+          )
+        );
+      }
+      CloseConnection();
+      return transformers;
+    }
+
     public List<NodeLinkViewModel> GetNodeLinks(string projectId)
     {
       List<NodeLinkViewModel> nodeConnectors = new List<NodeLinkViewModel>();
