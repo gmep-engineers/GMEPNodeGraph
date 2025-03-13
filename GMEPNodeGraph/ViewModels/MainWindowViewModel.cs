@@ -134,6 +134,9 @@ namespace GMEPNodeGraph.ViewModels
     public ViewModelCommand AddTransformerCommand => _AddTransformerCommand.Get(AddTransformer);
     ViewModelCommandHandler _AddTransformerCommand = new ViewModelCommandHandler();
 
+    public ViewModelCommand AddEquipmentCommand => _AddEquipmentCommand.Get(AddEquipment);
+    ViewModelCommandHandler _AddEquipmentCommand = new ViewModelCommandHandler();
+
     public ViewModelCommand AddGroupNodeCommand => _AddGroupNodeCommand.Get(AddGroupNode);
     ViewModelCommandHandler _AddGroupNodeCommand = new ViewModelCommandHandler();
 
@@ -362,6 +365,7 @@ namespace GMEPNodeGraph.ViewModels
         1,
         "#FFFFFFFF",
         true,
+        true,
         1,
         p,
         string.Empty,
@@ -446,6 +450,29 @@ namespace GMEPNodeGraph.ViewModels
       );
       _NodeViewModels.Add(panelBreaker);
       panelBreaker.Create(ProjectId, db).ForEach(CommandQueue.Enqueue);
+    }
+
+    void AddEquipment()
+    {
+      Point p = new Point((RightClickPoint.X - (Offset.X)), (RightClickPoint.Y - (Offset.Y)));
+      ElectricalEquipmentViewModel equipment = new ElectricalEquipmentViewModel(
+        Guid.NewGuid().ToString(),
+        ProjectId,
+        Guid.NewGuid().ToString(),
+        "Equipment",
+        3,
+        0,
+        0,
+        10000,
+        true,
+        "0",
+        2,
+        1,
+        p,
+        string.Empty
+      );
+      _NodeViewModels.Add(equipment);
+      equipment.Create(ProjectId, db).ForEach(CommandQueue.Enqueue);
     }
 
     void AddGroupNode()
@@ -686,6 +713,7 @@ namespace GMEPNodeGraph.ViewModels
       db.GetElectricalServices(ProjectId).ForEach(LoadNodeViewModel);
       db.GetElectricalDisconnects(ProjectId).ForEach(LoadNodeViewModel);
       db.GetElectricalTransformers(ProjectId).ForEach(LoadNodeViewModel);
+      db.GetElectricalEquipment(ProjectId).ForEach(LoadNodeViewModel);
       db.GetNodeLinks(ProjectId).ForEach(LoadNodeLinkViewModel);
       ProjectLoaded = true;
       Save();

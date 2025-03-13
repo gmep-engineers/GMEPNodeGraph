@@ -112,7 +112,7 @@ namespace GMEPNodeGraph.ViewModels
       AfVisible = Visibility.Visible;
       AsVisible = Visibility.Visible;
       PoleVisible = Visibility.Visible;
-      NodeType = NodeType.Equipment;
+      NodeType = NodeType.Disconnect;
       Inheritable = true;
     }
 

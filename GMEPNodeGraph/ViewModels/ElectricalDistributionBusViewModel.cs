@@ -122,13 +122,14 @@ namespace GMEPNodeGraph.ViewModels
       string query =
         @"
         UPDATE electrical_distribution_buses
-        SET amp_rating_id = @ampRatingId, node_id = @nodeId        
+        SET amp_rating_id = @ampRatingId, node_id = @nodeId, status_id = @statusId        
         WHERE id = @id
         ";
       MySqlCommand updateBreakerCommand = new MySqlCommand(query, db.Connection);
       updateBreakerCommand.Parameters.AddWithValue("@id", Id);
       updateBreakerCommand.Parameters.AddWithValue("@ampRatingId", AmpRatingId);
       updateBreakerCommand.Parameters.AddWithValue("@nodeId", Guid.ToString());
+      updateBreakerCommand.Parameters.AddWithValue("@statusId", StatusId);
       commands.Add(updateBreakerCommand);
       commands.Add(GetUpdateNodeCommand(db));
       return commands;

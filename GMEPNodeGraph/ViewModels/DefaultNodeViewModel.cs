@@ -44,6 +44,7 @@ namespace GMEPNodeGraph.ViewModels
     Panel,
     PanelBreaker,
     Transformer,
+    Disconnect,
     Equipment,
   }
 
@@ -151,6 +152,13 @@ namespace GMEPNodeGraph.ViewModels
     }
     Visibility _MloVisible = Visibility.Collapsed;
 
+    public Visibility RecessedVisible
+    {
+      get => _RecessedVisible;
+      set => RaisePropertyChangedIfSet(ref _RecessedVisible, value);
+    }
+    Visibility _RecessedVisible = Visibility.Collapsed;
+
     public Visibility PoleVisible
     {
       get => _PoleVisible;
@@ -192,6 +200,30 @@ namespace GMEPNodeGraph.ViewModels
       set => RaisePropertyChangedIfSet(ref _AsVisible, value);
     }
     Visibility _AsVisible = Visibility.Collapsed;
+    public Visibility EquipmentVoltageVisible
+    {
+      get => _EquipmentVoltageVisible;
+      set => RaisePropertyChangedIfSet(ref _EquipmentVoltageVisible, value);
+    }
+    Visibility _EquipmentVoltageVisible = Visibility.Collapsed;
+    public Visibility LoadAmperageVisible
+    {
+      get => _LoadAmperageVisible;
+      set => RaisePropertyChangedIfSet(ref _LoadAmperageVisible, value);
+    }
+    Visibility _LoadAmperageVisible = Visibility.Collapsed;
+    public Visibility IsThreePhaseVisible
+    {
+      get => _IsThreePhaseVisible;
+      set => RaisePropertyChangedIfSet(ref _IsThreePhaseVisible, value);
+    }
+    Visibility _IsThreePhaseVisible = Visibility.Collapsed;
+    public Visibility HpVisible
+    {
+      get => _HpVisible;
+      set => RaisePropertyChangedIfSet(ref _HpVisible, value);
+    }
+    Visibility _HpVisible = Visibility.Collapsed;
 
     public string Id
     {

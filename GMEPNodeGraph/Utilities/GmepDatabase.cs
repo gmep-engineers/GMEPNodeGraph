@@ -408,6 +408,7 @@ namespace GMEPNodeGraph.Utilities
         SELECT
         electrical_panels.id as panel_id,
         electrical_panels.is_mlo,
+        electrical_panels.is_recessed,
         electrical_panels.color_code,
         electrical_panels.name,
         electrical_single_line_nodes.loc_x,
@@ -441,6 +442,7 @@ namespace GMEPNodeGraph.Utilities
             GetSafeInt(reader, "main_amp_rating_id"),
             GetSafeString(reader, "color_code"),
             GetSafeBoolean(reader, "is_mlo"),
+            GetSafeBoolean(reader, "is_recessed"),
             GetSafeInt(reader, "status_id"),
             new Point(GetSafeInt(reader, "loc_x"), GetSafeInt(reader, "loc_y")),
             GetSafeString(reader, "input_connector_id"),
@@ -583,6 +585,63 @@ namespace GMEPNodeGraph.Utilities
             new Point(GetSafeInt(reader, "loc_x"), GetSafeInt(reader, "loc_y")),
             GetSafeString(reader, "input_connector_id"),
             GetSafeString(reader, "output_connector_id")
+          )
+        );
+      }
+      CloseConnection();
+      return transformers;
+    }
+
+    public List<ElectricalEquipmentViewModel> GetElectricalEquipment(string projectId)
+    {
+      List<ElectricalEquipmentViewModel> transformers = new List<ElectricalEquipmentViewModel>();
+      string query =
+        @"
+        SELECT
+        electrical_equipment.id as equipment_id,
+        electrical_equipment.node_id,
+        electrical_equipment.voltage_id,
+        electrical_equipment.mca,
+        electrical_equipment.fla,
+        electrical_equipment.aic_rating,
+        electrical_equipment.is_three_phase,
+        electrical_equipment.equip_no,
+        electrical_equipment.category_id,
+        electrical_equipment.hp,
+        electrical_equipment.status_id,
+        electrical_single_line_nodes.id as node_id,  
+        electrical_single_line_nodes.loc_x,   
+        electrical_single_line_nodes.loc_y,
+        electrical_single_line_nodes.input_connector_id,
+        electrical_single_line_nodes.output_connector_id
+        FROM electrical_equipment
+		    LEFT JOIN electrical_single_line_nodes ON electrical_single_line_nodes.id = electrical_equipment.node_id
+        WHERE electrical_equipment.project_id = @projectId
+        AND node_id IS NOT NULL
+        ";
+      OpenConnection();
+
+      MySqlCommand command = new MySqlCommand(query, Connection);
+      command.Parameters.AddWithValue("@projectId", projectId);
+      MySqlDataReader reader = command.ExecuteReader();
+      while (reader.Read())
+      {
+        transformers.Add(
+          new ElectricalEquipmentViewModel(
+            GetSafeString(reader, "equipment_id"),
+            projectId,
+            GetSafeString(reader, "node_id"),
+            GetSafeString(reader, "equip_no"),
+            GetSafeInt(reader, "voltage_id"),
+            GetSafeFloat(reader, "mca"),
+            GetSafeFloat(reader, "fla"),
+            GetSafeFloat(reader, "aic_rating"),
+            GetSafeBoolean(reader, "is_three_phase"),
+            GetSafeString(reader, "hp"),
+            GetSafeInt(reader, "category_id"),
+            GetSafeInt(reader, "status_id"),
+            new Point(GetSafeInt(reader, "loc_x"), GetSafeInt(reader, "loc_y")),
+            GetSafeString(reader, "input_connector_id")
           )
         );
       }

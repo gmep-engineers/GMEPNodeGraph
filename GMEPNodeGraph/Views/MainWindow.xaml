@@ -29,6 +29,7 @@
             <MenuItem IsEnabled="{Binding ProjectLoaded}" Header="Add Panel Breaker" Command="{Binding AddPanelBreakerCommand}"/>
             <MenuItem IsEnabled="{Binding ProjectLoaded}" Header="Add Disconnect" Command="{Binding AddDisconnectCommand}"/>
             <MenuItem IsEnabled="{Binding ProjectLoaded}" Header="Add Transformer" Command="{Binding AddTransformerCommand}"/>
+            <MenuItem IsEnabled="{Binding ProjectLoaded}" Header="Add Equipment" Command="{Binding AddEquipmentCommand}"/>
             <MenuItem IsEnabled="{Binding ProjectLoaded}" Header="Add Section" Command="{Binding AddGroupNodeCommand}"/>
             <MenuItem IsEnabled="{Binding ProjectLoaded}" Header="Remove Selected" Command="{Binding RemoveNodesCommand}"/>
         </ContextMenu>
@@ -132,6 +133,7 @@
                                 <ComboBoxItem Tag="13">800A</ComboBoxItem>
                             </ComboBox>
                             <CheckBox IsChecked="{Binding IsMlo}" Foreground="#FFF" Visibility="{Binding MloVisible}" Margin="5 5 5 5" >M.L.O.</CheckBox>
+                            <CheckBox IsChecked="{Binding IsRecessed}" Foreground="#FFF" Visibility="{Binding RecessedVisible}" Margin="5 5 5 5" >Recessed</CheckBox>
                             <Label Foreground="#FFF" Visibility="{Binding PanelAmpLabelsVisible}">Bus Size</Label>
                             <ComboBox Width="70" Visibility="{Binding PanelBusAmpVisible}" SelectedValue="{Binding Path=PanelAmpRatingId}" SelectedValuePath="Tag" >
                                 <ComboBoxItem Tag="1">60A</ComboBoxItem>
@@ -220,9 +222,34 @@
                                 <ComboBoxItem Tag="8">1000 KVA</ComboBoxItem>
                                 <ComboBoxItem Tag="9">1500 KVA</ComboBoxItem>
                                 <ComboBoxItem Tag="10">2000 KVA</ComboBoxItem>
-                                <ComboBoxItem Tag="11">2500 KVA</ComboBoxItem> 
+                                <ComboBoxItem Tag="11">2500 KVA</ComboBoxItem>
                             </ComboBox>
-                            
+                            <Label Foreground="White" Visibility="{Binding EquipmentVoltageVisible}">Voltage</Label>
+                            <ComboBox Width="95" Visibility="{Binding EquipmentVoltageVisible}" SelectedValue="{Binding Path=VoltageId}" SelectedValuePath="Tag" >
+                                <ComboBoxItem Tag="1">115</ComboBoxItem>
+                                <ComboBoxItem Tag="2">120</ComboBoxItem>
+                                <ComboBoxItem Tag="3">208</ComboBoxItem>
+                                <ComboBoxItem Tag="4">230</ComboBoxItem>
+                                <ComboBoxItem Tag="5">240</ComboBoxItem>
+                                <ComboBoxItem Tag="6">277</ComboBoxItem>
+                                <ComboBoxItem Tag="7">460</ComboBoxItem>
+                                <ComboBoxItem Tag="8">480</ComboBoxItem>
+                            </ComboBox>
+                            <Label Foreground="White" Visibility="{Binding EquipmentVoltageVisible}">Category</Label>
+                            <ComboBox Width="95" Visibility="{Binding EquipmentVoltageVisible}" SelectedValue="{Binding Path=CategoryId}" SelectedValuePath="Tag" >
+                                <ComboBoxItem Tag="1">General</ComboBoxItem>
+                                <ComboBoxItem Tag="2">Mechanical</ComboBoxItem>
+                                <ComboBoxItem Tag="3">Plumbing</ComboBoxItem>
+                                <ComboBoxItem Tag="4">Kitchen</ComboBoxItem>
+                                <ComboBoxItem Tag="5">Lighting</ComboBoxItem>
+                            </ComboBox>
+                            <Label Foreground="White" Visibility="{Binding LoadAmperageVisible}">MCA</Label>
+                            <TextBox Background="White" Visibility="{Binding LoadAmperageVisible}" BorderThickness="2" MaxLength="15" BorderBrush="#FF666666" Text="{Binding Mca}" Foreground="Black" />
+                            <Label Foreground="White" Visibility="{Binding LoadAmperageVisible}">FLA</Label>
+                            <TextBox Background="White" Visibility="{Binding LoadAmperageVisible}" BorderThickness="2" MaxLength="15" BorderBrush="#FF666666" Text="{Binding Fla}" Foreground="Black" />
+                            <Label Foreground="White" Visibility="{Binding HpVisible}">HP</Label>
+                            <TextBox Background="White" Visibility="{Binding HpVisible}" BorderThickness="2" MaxLength="15" BorderBrush="#FF666666" Text="{Binding Hp}" Foreground="Black" />
+                            <CheckBox Foreground="#FFF" Visibility="{Binding IsThreePhaseVisible}" IsChecked="{Binding IsThreePhase}" >3-Phase</CheckBox>
                         </StackPanel>
                     </DataTemplate>
                 </Setter.Value>
