@@ -359,3 +359,6 @@ MigrationBackup/
 # Settings files
 Settings.settings
 Settings.Designer.cs
+
+#Release file
+GMEPNodeGraph.zip

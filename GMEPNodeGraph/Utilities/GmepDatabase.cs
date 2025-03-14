@@ -128,9 +128,9 @@ namespace GMEPNodeGraph.Utilities
       string version = string.Empty;
       if (reader.Read())
       {
-        id = reader.GetString("id");
-        name = reader.GetString("gmep_project_name");
-        version = reader.GetInt32("version").ToString();
+        id = GetSafeString(reader, "id");
+        name = GetSafeString(reader, "gmep_project_name");
+        version = GetSafeInt(reader, "version").ToString();
       }
       reader.Close();
 
@@ -150,7 +150,7 @@ namespace GMEPNodeGraph.Utilities
 
       while (reader.Read())
       {
-        projectVersions.Add(reader.GetInt32("version").ToString());
+        projectVersions.Add(GetSafeInt(reader, "version").ToString());
       }
       reader.Close();
 
