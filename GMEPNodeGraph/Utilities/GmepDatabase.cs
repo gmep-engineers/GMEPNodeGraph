@@ -1,13 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Windows;
-using System.Windows.Controls;
 using GMEPNodeGraph.ViewModels;
 using MySql.Data.MySqlClient;
-using Org.BouncyCastle.Utilities.IO;
-using static Google.Protobuf.Reflection.SourceCodeInfo.Types;
 
 namespace GMEPNodeGraph.Utilities
 {
@@ -112,6 +107,19 @@ namespace GMEPNodeGraph.Utilities
       }
       OpenConnection();
       MySqlCommand command = new MySqlCommand(query, Connection);
+
+      if (projectVersion != "latest")
+      {
+        if (Int32.TryParse(projectVersion, out int projectVersionInt))
+        {
+          command.Parameters.AddWithValue("@projectVersion", projectVersionInt);
+        }
+        else
+        {
+          return (string.Empty, string.Empty, string.Empty);
+        }
+      }
+
       command.Parameters.AddWithValue("@projectNo", projectNo);
       MySqlDataReader reader = command.ExecuteReader();
 

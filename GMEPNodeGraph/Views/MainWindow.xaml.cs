@@ -1,21 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Channels;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using GMEPNodeGraph.ViewModels;
-using GMEPNodeGraph.Views;
 
 namespace GMEPNodeGraph.Views
 {
@@ -27,19 +13,28 @@ namespace GMEPNodeGraph.Views
     public MainWindow()
     {
       string[] args = Environment.GetCommandLineArgs();
-      string projectId = string.Empty;
+      string projectNo = string.Empty;
+      string projectVersion = string.Empty;
+      InitializeComponent();
+
       if (args.Length > 1)
       {
         // Get project ID from args
-        projectId = args[1];
+        projectNo = args[1];
+        if (args.Length > 2)
+        {
+          projectVersion = args[2];
+        }
+        else
+        {
+          projectVersion = "latest";
+        }
 
-        // Load project nodes from DB
-
-        // If nodes, load nodes
         var vm = (MainWindowViewModel)this.DataContext;
-        vm.ProjectId = projectId;
+        vm.ProjectNo = projectNo;
+        vm.ProjectVersion = projectVersion;
+        vm.LoadProjectNodesCommand.Execute();
       }
-      InitializeComponent();
     }
   }
 }

@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using GMEPNodeGraph.Utilities;
 using MySql.Data.MySqlClient;
@@ -128,6 +126,7 @@ namespace GMEPNodeGraph.ViewModels
       LoadAmperageVisible = Visibility.Visible;
       IsThreePhaseVisible = Visibility.Visible;
       HpVisible = Visibility.Visible;
+      Inheritable = true;
     }
 
     public override NodeConnectorViewModel FindConnector(Guid guid)
@@ -162,11 +161,12 @@ namespace GMEPNodeGraph.ViewModels
       string query =
         @"
         INSERT INTO electrical_equipment
-        (id, project_id, node_id, status_id, voltage_id, mca, fla, is_three_phase, hp, category_id, connection_type_id)
-        VALUES (@id, @projectId, @nodeId, @statusId, @voltageId, @mca, @fla, @isThreePhase, @hp, @categoryId,  @connectionTypeId)
+        (id, project_id, equip_no, node_id, status_id, voltage_id, mca, fla, is_three_phase, hp, category_id, connection_type_id)
+        VALUES (@id, @projectId, @name, @nodeId, @statusId, @voltageId, @mca, @fla, @isThreePhase, @hp, @categoryId,  @connectionTypeId)
         ";
       MySqlCommand createEquipmentCommand = new MySqlCommand(query, db.Connection);
       createEquipmentCommand.Parameters.AddWithValue("@id", Id);
+      createEquipmentCommand.Parameters.AddWithValue("@name", Name);
       createEquipmentCommand.Parameters.AddWithValue("@nodeId", Guid.ToString());
       createEquipmentCommand.Parameters.AddWithValue("@projectId", projectId);
       createEquipmentCommand.Parameters.AddWithValue("@voltageId", VoltageId);
@@ -189,6 +189,7 @@ namespace GMEPNodeGraph.ViewModels
         @"
         UPDATE electrical_equipment
         SET 
+        equip_no = @name,
         node_id = @nodeId, 
         parent_id = @parentId, 
         status_id = @statusId,
@@ -203,6 +204,7 @@ namespace GMEPNodeGraph.ViewModels
         ";
       MySqlCommand updateEquipmentCommand = new MySqlCommand(query, db.Connection);
       updateEquipmentCommand.Parameters.AddWithValue("@id", Id);
+      updateEquipmentCommand.Parameters.AddWithValue("@name", Name);
       updateEquipmentCommand.Parameters.AddWithValue("@nodeId", Guid.ToString());
       updateEquipmentCommand.Parameters.AddWithValue("@parentId", ParentId);
       updateEquipmentCommand.Parameters.AddWithValue("@voltageId", VoltageId);
