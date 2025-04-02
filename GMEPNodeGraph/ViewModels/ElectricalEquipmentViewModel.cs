@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using GMEPNodeGraph.Utilities;
@@ -15,7 +16,7 @@ namespace GMEPNodeGraph.ViewModels
       get => _VoltageId;
       set => RaisePropertyChangedIfSet(ref _VoltageId, value);
     }
-    int _VoltageId = 0;
+    int _VoltageId = 2;
 
     public double Fla
     {
@@ -169,12 +170,18 @@ namespace GMEPNodeGraph.ViewModels
       createEquipmentCommand.Parameters.AddWithValue("@name", Name);
       createEquipmentCommand.Parameters.AddWithValue("@nodeId", Guid.ToString());
       createEquipmentCommand.Parameters.AddWithValue("@projectId", projectId);
-      createEquipmentCommand.Parameters.AddWithValue("@voltageId", VoltageId);
+      createEquipmentCommand.Parameters.AddWithValue(
+        "@voltageId",
+        VoltageId < 1 || VoltageId > 8 ? 2 : VoltageId
+      );
       createEquipmentCommand.Parameters.AddWithValue("@mca", Mca);
       createEquipmentCommand.Parameters.AddWithValue("@fla", Fla);
       createEquipmentCommand.Parameters.AddWithValue("@isThreePhase", IsThreePhase);
       createEquipmentCommand.Parameters.AddWithValue("@hp", Hp);
-      createEquipmentCommand.Parameters.AddWithValue("@categoryId", CategoryId);
+      createEquipmentCommand.Parameters.AddWithValue(
+        "@categoryId",
+        CategoryId < 1 || CategoryId > 5 ? 1 : CategoryId
+      );
       createEquipmentCommand.Parameters.AddWithValue("@connectionTypeId", 3);
       createEquipmentCommand.Parameters.AddWithValue("@statusId", StatusId);
       commands.Add(createEquipmentCommand);

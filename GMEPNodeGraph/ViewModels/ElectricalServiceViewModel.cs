@@ -81,6 +81,7 @@ namespace GMEPNodeGraph.ViewModels
       this.ColorCode = ColorCode;
       this.StatusId = StatusId;
       NodeType = NodeType.Service;
+      Inheritable = true;
     }
 
     public override NodeConnectorViewModel FindConnector(Guid guid)

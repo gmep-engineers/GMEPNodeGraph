@@ -216,6 +216,12 @@ namespace GMEPNodeGraph.ViewModels
       set => RaisePropertyChangedIfSet(ref _HpVisible, value);
     }
     Visibility _HpVisible = Visibility.Collapsed;
+    public Visibility NumBreakersVisible
+    {
+      get => _NumBreakersVisible;
+      set => RaisePropertyChangedIfSet(ref _NumBreakersVisible, value);
+    }
+    Visibility _NumBreakersVisible = Visibility.Collapsed;
 
     public string Id
     {

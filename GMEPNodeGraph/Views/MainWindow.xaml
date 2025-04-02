@@ -249,6 +249,8 @@
                             <TextBox Background="White" Visibility="{Binding LoadAmperageVisible}" BorderThickness="2" MaxLength="15" BorderBrush="#FF666666" Text="{Binding Fla}" Foreground="Black" />
                             <Label Foreground="White" Visibility="{Binding HpVisible}">HP</Label>
                             <TextBox Background="White" Visibility="{Binding HpVisible}" BorderThickness="2" MaxLength="15" BorderBrush="#FF666666" Text="{Binding Hp}" Foreground="Black" />
+                            <Label Foreground="White" Visibility="{Binding NumBreakersVisible}">Num Breakers</Label>
+                            <TextBox Background="White" Visibility="{Binding NumBreakersVisible}" BorderThickness="2" MaxLength="15" BorderBrush="#FF666666" Text="{Binding NumBreakers}" Foreground="Black" />
                             <CheckBox Foreground="#FFF" Visibility="{Binding IsThreePhaseVisible}" IsChecked="{Binding IsThreePhase}" >3-Phase</CheckBox>
                         </StackPanel>
                     </DataTemplate>

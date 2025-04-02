@@ -426,6 +426,7 @@ namespace GMEPNodeGraph.Utilities
         electrical_panels.main_amp_rating_id, 
         electrical_panels.voltage_id, 
         electrical_panels.status_id,
+        electrical_panels.num_breakers,
         electrical_single_line_nodes.id as node_id,
         electrical_single_line_nodes.input_connector_id,
         electrical_single_line_nodes.output_connector_id
@@ -451,6 +452,7 @@ namespace GMEPNodeGraph.Utilities
             GetSafeString(reader, "color_code"),
             GetSafeBoolean(reader, "is_mlo"),
             GetSafeBoolean(reader, "is_recessed"),
+            GetSafeInt(reader, "num_breakers"),
             GetSafeInt(reader, "status_id"),
             new Point(GetSafeInt(reader, "loc_x"), GetSafeInt(reader, "loc_y")),
             GetSafeString(reader, "input_connector_id"),

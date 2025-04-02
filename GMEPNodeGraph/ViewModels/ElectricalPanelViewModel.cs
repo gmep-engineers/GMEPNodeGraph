@@ -45,6 +45,13 @@ namespace GMEPNodeGraph.ViewModels
     }
     int _MainAmp = 1;
 
+    public int NumBreakers
+    {
+      get => _NumBreakers;
+      set => RaisePropertyChangedIfSet(ref _NumBreakers, value);
+    }
+    int _NumBreakers = 42;
+
     public override IEnumerable<NodeConnectorViewModel> Inputs => _Inputs;
     readonly ObservableCollection<NodeInputViewModel> _Inputs =
       new ObservableCollection<NodeInputViewModel>();
@@ -64,6 +71,7 @@ namespace GMEPNodeGraph.ViewModels
       string ColorCode,
       bool IsMlo,
       bool IsRecessed,
+      int NumBreakers,
       int StatusId,
       Point Position,
       string InputConnectorId,
@@ -76,6 +84,7 @@ namespace GMEPNodeGraph.ViewModels
       VoltagePhaseVisible = Visibility.Visible;
       MloVisible = Visibility.Visible;
       RecessedVisible = Visibility.Visible;
+      NumBreakersVisible = Visibility.Visible;
       if (Guid.TryParse(InputConnectorId, out Guid inputId))
       {
         NodeInputViewModel input = new NodeInputViewModel($"Input", true);
@@ -104,6 +113,7 @@ namespace GMEPNodeGraph.ViewModels
       this.PanelAmpRatingId = PanelAmpRatingId;
       this.ColorCode = ColorCode;
       this.VoltageId = VoltageId;
+      this.NumBreakers = NumBreakers;
       this.Id = Id;
       this.StatusId = StatusId;
       if (Guid.TryParse(NodeId, out Guid id))
@@ -144,8 +154,8 @@ namespace GMEPNodeGraph.ViewModels
       string query =
         @"
         INSERT INTO electrical_panels
-        (id, parent_id, project_id, node_id, bus_amp_rating_id, main_amp_rating_id, is_mlo, is_recessed, voltage_id, color_code, name, status_id)
-        VALUES (@id, @parentId, @projectId, @nodeId, @busAmpRatingId, @mainAmpRatingId, @isMlo, @isRecessed, @voltageId, @colorCode, @name, @statusId)
+        (id, parent_id, project_id, node_id, bus_amp_rating_id, main_amp_rating_id, is_mlo, is_recessed, voltage_id, color_code, @num_breakers, name, status_id)
+        VALUES (@id, @parentId, @projectId, @nodeId, @busAmpRatingId, @mainAmpRatingId, @isMlo, @isRecessed, @voltageId, @colorCode, @numBreakers, @name, @statusId)
         ";
       MySqlCommand createPanelCommand = new MySqlCommand(query, db.Connection);
       createPanelCommand.Parameters.AddWithValue("@id", Id);
@@ -158,6 +168,7 @@ namespace GMEPNodeGraph.ViewModels
       createPanelCommand.Parameters.AddWithValue("@isRecessed", IsRecessed);
       createPanelCommand.Parameters.AddWithValue("@voltageId", VoltageId);
       createPanelCommand.Parameters.AddWithValue("@colorCode", ColorCode);
+      createPanelCommand.Parameters.AddWithValue("@numBreakers", NumBreakers);
       createPanelCommand.Parameters.AddWithValue("@name", Name);
       createPanelCommand.Parameters.AddWithValue("@statusId", StatusId);
       commands.Add(createPanelCommand);
@@ -180,6 +191,7 @@ namespace GMEPNodeGraph.ViewModels
         is_recessed = @isRecessed,
         voltage_id = @voltageId,
         color_code = @colorCode,
+        num_breakers = @numBreakers,
         name = @name,
         status_id = @statusId
         WHERE id = @id
@@ -194,6 +206,7 @@ namespace GMEPNodeGraph.ViewModels
       updatePanelCommand.Parameters.AddWithValue("@isRecessed", IsRecessed);
       updatePanelCommand.Parameters.AddWithValue("@voltageId", VoltageId);
       updatePanelCommand.Parameters.AddWithValue("@colorCode", ColorCode);
+      updatePanelCommand.Parameters.AddWithValue("@numBreakers", NumBreakers);
       updatePanelCommand.Parameters.AddWithValue("@name", Name);
       updatePanelCommand.Parameters.AddWithValue("@statusId", StatusId);
       commands.Add(updatePanelCommand);

@@ -355,6 +355,7 @@ namespace GMEPNodeGraph.ViewModels
         "#FFFFFFFF",
         true,
         true,
+        42,
         1,
         p,
         string.Empty,
