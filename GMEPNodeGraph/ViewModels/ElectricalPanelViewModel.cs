@@ -154,7 +154,7 @@ namespace GMEPNodeGraph.ViewModels
       string query =
         @"
         INSERT INTO electrical_panels
-        (id, parent_id, project_id, node_id, bus_amp_rating_id, main_amp_rating_id, is_mlo, is_recessed, voltage_id, color_code, @num_breakers, name, status_id)
+        (id, parent_id, project_id, node_id, bus_amp_rating_id, main_amp_rating_id, is_mlo, is_recessed, voltage_id, color_code, num_breakers, name, status_id)
         VALUES (@id, @parentId, @projectId, @nodeId, @busAmpRatingId, @mainAmpRatingId, @isMlo, @isRecessed, @voltageId, @colorCode, @numBreakers, @name, @statusId)
         ";
       MySqlCommand createPanelCommand = new MySqlCommand(query, db.Connection);
