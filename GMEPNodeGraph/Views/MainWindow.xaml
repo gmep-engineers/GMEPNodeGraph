@@ -215,14 +215,15 @@
                                 <ComboBoxItem Tag="1">45 KVA</ComboBoxItem>
                                 <ComboBoxItem Tag="2">75 KVA</ComboBoxItem>
                                 <ComboBoxItem Tag="3">112.5 KVA</ComboBoxItem>
-                                <ComboBoxItem Tag="4">225 KVA</ComboBoxItem>
-                                <ComboBoxItem Tag="5">300 KVA</ComboBoxItem>
-                                <ComboBoxItem Tag="6">500 KVA</ComboBoxItem>
-                                <ComboBoxItem Tag="7">750 KVA</ComboBoxItem>
-                                <ComboBoxItem Tag="8">1000 KVA</ComboBoxItem>
-                                <ComboBoxItem Tag="9">1500 KVA</ComboBoxItem>
-                                <ComboBoxItem Tag="10">2000 KVA</ComboBoxItem>
-                                <ComboBoxItem Tag="11">2500 KVA</ComboBoxItem>
+                                <ComboBoxItem Tag="4">150 KVA</ComboBoxItem>
+                                <ComboBoxItem Tag="5">225 KVA</ComboBoxItem>
+                                <ComboBoxItem Tag="6">300 KVA</ComboBoxItem>
+                                <ComboBoxItem Tag="7">500 KVA</ComboBoxItem>
+                                <ComboBoxItem Tag="8">750 KVA</ComboBoxItem>
+                                <ComboBoxItem Tag="9">1000 KVA</ComboBoxItem>
+                                <ComboBoxItem Tag="10">1500 KVA</ComboBoxItem>
+                                <ComboBoxItem Tag="11">2000 KVA</ComboBoxItem>
+                                <ComboBoxItem Tag="12">2500 KVA</ComboBoxItem>
                             </ComboBox>
                             <Label Foreground="White" Visibility="{Binding EquipmentVoltageVisible}">Voltage</Label>
                             <ComboBox Width="95" Visibility="{Binding EquipmentVoltageVisible}" SelectedValue="{Binding Path=VoltageId}" SelectedValuePath="Tag" >
