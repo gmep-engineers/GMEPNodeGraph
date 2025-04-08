@@ -604,7 +604,7 @@ namespace GMEPNodeGraph.Utilities
 
     public List<ElectricalEquipmentViewModel> GetElectricalEquipment(string projectId)
     {
-      List<ElectricalEquipmentViewModel> transformers = new List<ElectricalEquipmentViewModel>();
+      List<ElectricalEquipmentViewModel> equipment = new List<ElectricalEquipmentViewModel>();
       string query =
         @"
         SELECT
@@ -636,27 +636,30 @@ namespace GMEPNodeGraph.Utilities
       MySqlDataReader reader = command.ExecuteReader();
       while (reader.Read())
       {
-        transformers.Add(
-          new ElectricalEquipmentViewModel(
-            GetSafeString(reader, "equipment_id"),
-            projectId,
-            GetSafeString(reader, "node_id"),
-            GetSafeString(reader, "equip_no"),
-            GetSafeInt(reader, "voltage_id"),
-            GetSafeFloat(reader, "mca"),
-            GetSafeFloat(reader, "fla"),
-            GetSafeFloat(reader, "aic_rating"),
-            GetSafeBoolean(reader, "is_three_phase"),
-            GetSafeString(reader, "hp"),
-            GetSafeInt(reader, "category_id"),
-            GetSafeInt(reader, "status_id"),
-            new Point(GetSafeInt(reader, "loc_x"), GetSafeInt(reader, "loc_y")),
-            GetSafeString(reader, "input_connector_id")
-          )
-        );
+        if (!String.IsNullOrEmpty(GetSafeString(reader, "node_id")))
+        {
+          equipment.Add(
+            new ElectricalEquipmentViewModel(
+              GetSafeString(reader, "equipment_id"),
+              projectId,
+              GetSafeString(reader, "node_id"),
+              GetSafeString(reader, "equip_no"),
+              GetSafeInt(reader, "voltage_id"),
+              GetSafeFloat(reader, "mca"),
+              GetSafeFloat(reader, "fla"),
+              GetSafeFloat(reader, "aic_rating"),
+              GetSafeBoolean(reader, "is_three_phase"),
+              GetSafeString(reader, "hp"),
+              GetSafeInt(reader, "category_id"),
+              GetSafeInt(reader, "status_id"),
+              new Point(GetSafeInt(reader, "loc_x"), GetSafeInt(reader, "loc_y")),
+              GetSafeString(reader, "input_connector_id")
+            )
+          );
+        }
       }
       CloseConnection();
-      return transformers;
+      return equipment;
     }
 
     public List<NodeLinkViewModel> GetNodeLinks(string projectId)
