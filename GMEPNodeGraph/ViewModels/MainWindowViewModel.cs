@@ -277,6 +277,9 @@ namespace GMEPNodeGraph.ViewModels
       catch (Exception ex)
       {
         // delete node link in the DB not connected to any equip
+        //
+        // this requires System.NullReferenceException to be unchecked
+        // in Debug > Windows > Exception Settings
         CommandQueue.Enqueue(viewModel.Delete(db));
       }
     }
