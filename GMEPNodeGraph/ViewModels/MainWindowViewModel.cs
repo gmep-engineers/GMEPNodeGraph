@@ -97,6 +97,10 @@ namespace GMEPNodeGraph.ViewModels
       _LoadProjectNodesCommand.Get(LoadProjectNodes);
     ViewModelCommandHandler _LoadProjectNodesCommand = new ViewModelCommandHandler();
 
+    public ViewModelCommand LoadProjectCommand =>
+     _LoadProjectCommand.Get(LoadProject);
+    ViewModelCommandHandler _LoadProjectCommand = new ViewModelCommandHandler();
+
     public ViewModelCommand AddServiceCommand => _AddServiceCommand.Get(AddService);
     ViewModelCommandHandler _AddServiceCommand = new ViewModelCommandHandler();
 
@@ -674,28 +678,28 @@ namespace GMEPNodeGraph.ViewModels
       }
     }
 
-    void LoadProjectNodes()
-    {
-      if (string.IsNullOrEmpty(ProjectNo) || ProjectNo == "Project #")
-      {
-        return;
-      }
-      if (string.IsNullOrEmpty(ProjectVersion))
-      {
-        ProjectVersion = "latest";
-      }
-      (ProjectName, ProjectId, ProjectVersion) = db.GetProjectNameIdVersion(
-        ProjectNo,
-        ProjectVersion
-      );
-      if (String.IsNullOrEmpty(ProjectId))
-      {
-        ProjectName = "Project not found";
+    void LoadProject() {
+      if (string.IsNullOrEmpty(ProjectNo) || ProjectNo == "Project #") {
         return;
       }
       ProjectVersions = db.GetProjectVersions(ProjectNo);
-      ProjectVersions[0] += " (latest)";
 
+      (ProjectName, ProjectId, ProjectVersion) = db.GetProjectNameIdVersion(
+        ProjectNo,
+        "latest"
+      );
+      if (String.IsNullOrEmpty(ProjectId)) {
+        ProjectName = "Project not found";
+        return;
+      }
+    }
+    void LoadProjectNodes()
+    {
+      ClearNodes();
+      (ProjectName, ProjectId, ProjectVersion) = db.GetProjectNameIdVersion(
+       ProjectNo,
+       ProjectVersion
+     );
       db.GetGroupNodes(ProjectId).ForEach(LoadGroupNodeViewModel);
       db.GetElectricalDistributionBreakers(ProjectId).ForEach(LoadNodeViewModel);
       db.GetElectricalDistributionBuses(ProjectId).ForEach(LoadNodeViewModel);
@@ -710,6 +714,7 @@ namespace GMEPNodeGraph.ViewModels
       db.GetNodeLinks(ProjectId).ForEach(LoadNodeLinkViewModel);
       ProjectLoaded = true;
       Save();
+
     }
 
     void Save()
