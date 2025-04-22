@@ -697,6 +697,12 @@ namespace GMEPNodeGraph.ViewModels
        ProjectNo,
        ProjectVersion
      );
+      if (ProjectVersion == string.Empty) {
+        (ProjectName, ProjectId, ProjectVersion) = db.GetProjectNameIdVersion(
+        ProjectNo,
+        "latest"
+     );
+      }
       db.GetGroupNodes(ProjectId).ForEach(LoadGroupNodeViewModel);
       db.GetElectricalDistributionBreakers(ProjectId).ForEach(LoadNodeViewModel);
       db.GetElectricalDistributionBuses(ProjectId).ForEach(LoadNodeViewModel);
