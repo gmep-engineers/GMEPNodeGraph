@@ -94,6 +94,7 @@ namespace GMEPNodeGraph.ViewModels
     Queue<MySqlCommand> CommandQueue = new Queue<MySqlCommand>();
     GmepDatabase db = new GmepDatabase();
 
+
     public ViewModelCommand LoadProjectNodesCommand =>
       _LoadProjectNodesCommand.Get(LoadProjectNodes);
     ViewModelCommandHandler _LoadProjectNodesCommand = new ViewModelCommandHandler();
@@ -101,6 +102,9 @@ namespace GMEPNodeGraph.ViewModels
     public ViewModelCommand LoadProjectCommand =>
      _LoadProjectCommand.Get(LoadProject);
     ViewModelCommandHandler _LoadProjectCommand = new ViewModelCommandHandler();
+    public ViewModelCommand LoadProjectFromCommandLineCommand =>
+      _LoadProjectFromCommandLineCommand.Get(LoadProjectFromCommandLine);
+    ViewModelCommandHandler _LoadProjectFromCommandLineCommand = new ViewModelCommandHandler();
 
     public ViewModelCommand AddServiceCommand => _AddServiceCommand.Get(AddService);
     ViewModelCommandHandler _AddServiceCommand = new ViewModelCommandHandler();
@@ -678,6 +682,13 @@ namespace GMEPNodeGraph.ViewModels
         link.IsSelected = true;
       }
     }
+    void LoadProjectFromCommandLine() {
+      ProjectVersions = db.GetProjectVersions(ProjectNo);
+      if (ProjectVersions.Count == 0) {
+        ProjectName = "Project not found";
+        return;
+      }
+    }
 
     void LoadProject() {
       if (string.IsNullOrEmpty(ProjectNo) || ProjectNo == "Project #") {
@@ -689,6 +700,7 @@ namespace GMEPNodeGraph.ViewModels
         ProjectName = "Project not found";
         return;
       }
+      LoadProjectNodes();
     }
     void LoadProjectNodes()
     {
