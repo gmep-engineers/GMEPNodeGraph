@@ -31,6 +31,7 @@ namespace GMEPNodeGraph.ViewModels
     public string ProjectNo
     {
       get => _ProjectNo;
+
       set => RaisePropertyChangedIfSet(ref _ProjectNo, value);
     }
     string _ProjectNo = "Project #";
@@ -684,11 +685,7 @@ namespace GMEPNodeGraph.ViewModels
       }
       ProjectVersions = db.GetProjectVersions(ProjectNo);
 
-      (ProjectName, ProjectId, ProjectVersion) = db.GetProjectNameIdVersion(
-        ProjectNo,
-        "latest"
-      );
-      if (String.IsNullOrEmpty(ProjectId)) {
+      if (ProjectVersions.Count == 0) {
         ProjectName = "Project not found";
         return;
       }
