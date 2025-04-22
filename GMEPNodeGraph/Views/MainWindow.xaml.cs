@@ -32,7 +32,7 @@ namespace GMEPNodeGraph.Views
 
         var vm = (MainWindowViewModel)this.DataContext;
         vm.ProjectNo = projectNo;
-        vm.LoadProjectFromCommandLineCommand.Execute();
+        vm.LoadProjectCommand.Execute();
         vm.ProjectVersion = projectVersion;
         vm.LoadProjectNodesCommand.Execute();
       }
