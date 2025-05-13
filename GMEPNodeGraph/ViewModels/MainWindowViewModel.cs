@@ -31,6 +31,7 @@ namespace GMEPNodeGraph.ViewModels
     public string ProjectNo
     {
       get => _ProjectNo;
+
       set => RaisePropertyChangedIfSet(ref _ProjectNo, value);
     }
     string _ProjectNo = "Project #";
@@ -93,9 +94,14 @@ namespace GMEPNodeGraph.ViewModels
     Queue<MySqlCommand> CommandQueue = new Queue<MySqlCommand>();
     GmepDatabase db = new GmepDatabase();
 
+
     public ViewModelCommand LoadProjectNodesCommand =>
       _LoadProjectNodesCommand.Get(LoadProjectNodes);
     ViewModelCommandHandler _LoadProjectNodesCommand = new ViewModelCommandHandler();
+
+    public ViewModelCommand LoadProjectCommand =>
+     _LoadProjectCommand.Get(LoadProject);
+    ViewModelCommandHandler _LoadProjectCommand = new ViewModelCommandHandler();
 
     public ViewModelCommand AddServiceCommand => _AddServiceCommand.Get(AddService);
     ViewModelCommandHandler _AddServiceCommand = new ViewModelCommandHandler();
@@ -674,28 +680,34 @@ namespace GMEPNodeGraph.ViewModels
       }
     }
 
-    void LoadProjectNodes()
-    {
-      if (string.IsNullOrEmpty(ProjectNo) || ProjectNo == "Project #")
-      {
+    void LoadProject() {
+      if (string.IsNullOrEmpty(ProjectNo) || ProjectNo == "Project #") {
         return;
       }
-      if (string.IsNullOrEmpty(ProjectVersion))
-      {
-        ProjectVersion = "latest";
-      }
-      (ProjectName, ProjectId, ProjectVersion) = db.GetProjectNameIdVersion(
-        ProjectNo,
-        ProjectVersion
-      );
-      if (String.IsNullOrEmpty(ProjectId))
-      {
+      var oldProjectVersion = ProjectVersion;
+      ProjectVersions = db.GetProjectVersions(ProjectNo);
+
+      if (ProjectVersions.Count == 0) {
         ProjectName = "Project not found";
         return;
       }
-      ProjectVersions = db.GetProjectVersions(ProjectNo);
-      ProjectVersions[0] += " (latest)";
-
+      if (oldProjectVersion == ProjectVersion) {
+        LoadProjectNodes();
+      }
+    }
+    void LoadProjectNodes()
+    {
+      ClearNodes();
+      (ProjectName, ProjectId, ProjectVersion) = db.GetProjectNameIdVersion(
+       ProjectNo,
+       ProjectVersion
+     );
+      if (ProjectVersion == string.Empty) {
+        (ProjectName, ProjectId, ProjectVersion) = db.GetProjectNameIdVersion(
+        ProjectNo,
+        "latest"
+     );
+      }
       db.GetGroupNodes(ProjectId).ForEach(LoadGroupNodeViewModel);
       db.GetElectricalDistributionBreakers(ProjectId).ForEach(LoadNodeViewModel);
       db.GetElectricalDistributionBuses(ProjectId).ForEach(LoadNodeViewModel);
@@ -710,6 +722,7 @@ namespace GMEPNodeGraph.ViewModels
       db.GetNodeLinks(ProjectId).ForEach(LoadNodeLinkViewModel);
       ProjectLoaded = true;
       Save();
+
     }
 
     void Save()
