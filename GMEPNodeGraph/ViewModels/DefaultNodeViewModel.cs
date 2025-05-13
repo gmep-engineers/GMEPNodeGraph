@@ -233,7 +233,10 @@ namespace GMEPNodeGraph.ViewModels
     public string ParentId
     {
       get => _ParentId;
-      set => RaisePropertyChangedIfSet(ref _ParentId, value);
+      set {
+            RaisePropertyChangedIfSet(ref _ParentId, value);
+            CircuitNo = 0;
+          }
     }
     string _ParentId = string.Empty;
 
