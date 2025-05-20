@@ -155,7 +155,6 @@
                                 <ComboBoxItem Tag="2">120/240-1Φ</ComboBoxItem>
                                 <ComboBoxItem Tag="3">277/480-3Φ</ComboBoxItem>
                                 <ComboBoxItem Tag="4">120/240-3Φ</ComboBoxItem>
-                                <ComboBoxItem Tag="5">120/208-1Φ</ComboBoxItem>
                             </ComboBox>
                             <ComboBox Width="70" Visibility="{Binding AsVisible}"  SelectedValue="{Binding Path=AsSizeId}" SelectedValuePath="Tag" >
                                 <ComboBoxItem Tag="1">30 AS</ComboBoxItem>
