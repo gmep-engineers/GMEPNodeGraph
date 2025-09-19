@@ -54,6 +54,7 @@ namespace GMEPNodeGraph.ViewModels
     public ElectricalDisconnectViewModel(
       string Id,
       string ProjectId,
+      string ElectricalProjectId,
       string NodeId,
       int AsSizeId,
       int AfSizeId,
@@ -94,7 +95,7 @@ namespace GMEPNodeGraph.ViewModels
         Guid = Guid.NewGuid();
         GmepDatabase db = new GmepDatabase();
         db.OpenConnection();
-        MySqlCommand createNodeCommand = GetCreateNodeCommand(ProjectId, db);
+        MySqlCommand createNodeCommand = GetCreateNodeCommand(ProjectId, ElectricalProjectId, db);
         createNodeCommand.ExecuteNonQuery();
         List<MySqlCommand> updateNodeCommand = Update(db);
         updateNodeCommand[0].ExecuteNonQuery();
@@ -114,25 +115,33 @@ namespace GMEPNodeGraph.ViewModels
       Inheritable = false;
     }
 
-    public override List<MySqlCommand> Create(string projectId, GmepDatabase db)
+    public override List<MySqlCommand> Create(
+      string projectId,
+      string electricalProjectId,
+      GmepDatabase db
+    )
     {
       List<MySqlCommand> commands = new List<MySqlCommand>();
       string query =
         @"
         INSERT INTO electrical_disconnects
-        (id, project_id, node_id, as_size_id, af_size_id, num_poles, status_id)
-        VALUES (@id, @projectId, @nodeId, @asSizeId, @afSizeId, @numPoles, @statusId)
+        ( id,  project_id,  electrical_project_id,  node_id,  as_size_id,  af_size_id,  num_poles,  status_id) VALUES
+        (@id, @project_id, @electrical_project_id, @node_id, @as_size_id, @af_size_id, @num_poles, @status_id)
         ";
       MySqlCommand createDisconnectCommand = new MySqlCommand(query, db.Connection);
       createDisconnectCommand.Parameters.AddWithValue("@id", Id);
-      createDisconnectCommand.Parameters.AddWithValue("@nodeId", Guid.ToString());
-      createDisconnectCommand.Parameters.AddWithValue("@projectId", projectId);
-      createDisconnectCommand.Parameters.AddWithValue("@asSizeId", AsSizeId);
-      createDisconnectCommand.Parameters.AddWithValue("@afSizeId", AfSizeId);
-      createDisconnectCommand.Parameters.AddWithValue("@numPoles", NumPoles);
-      createDisconnectCommand.Parameters.AddWithValue("@statusId", StatusId);
+      createDisconnectCommand.Parameters.AddWithValue("@project_id", projectId);
+      createDisconnectCommand.Parameters.AddWithValue(
+        "@electrical_project_id",
+        electricalProjectId
+      );
+      createDisconnectCommand.Parameters.AddWithValue("@node_id", Guid.ToString());
+      createDisconnectCommand.Parameters.AddWithValue("@as_size_id", AsSizeId);
+      createDisconnectCommand.Parameters.AddWithValue("@af_size_id", AfSizeId);
+      createDisconnectCommand.Parameters.AddWithValue("@num_poles", NumPoles);
+      createDisconnectCommand.Parameters.AddWithValue("@status_id", StatusId);
       commands.Add(createDisconnectCommand);
-      commands.Add(GetCreateNodeCommand(projectId, db));
+      commands.Add(GetCreateNodeCommand(projectId, electricalProjectId, db));
       return commands;
     }
 

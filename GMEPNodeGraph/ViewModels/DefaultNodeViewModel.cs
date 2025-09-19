@@ -272,6 +272,13 @@ namespace GMEPNodeGraph.ViewModels
     }
     string _ProjectId = string.Empty;
 
+    public string ElectricalProjectId
+    {
+      get => _ElectricalProjectId;
+      set => RaisePropertyChangedIfSet(ref _ElectricalProjectId, value);
+    }
+    private string _ElectricalProjectId = string.Empty;
+
     public string ColorCode
     {
       get => _ColorCode;
@@ -324,7 +331,11 @@ namespace GMEPNodeGraph.ViewModels
 
     public abstract NodeConnectorViewModel FindConnector(Guid guid);
 
-    public abstract List<MySqlCommand> Create(string projectId, GmepDatabase db);
+    public abstract List<MySqlCommand> Create(
+      string projectId,
+      string electricalProjectId,
+      GmepDatabase db
+    );
 
     public abstract List<MySqlCommand> Update(GmepDatabase db);
 
@@ -336,25 +347,30 @@ namespace GMEPNodeGraph.ViewModels
       Height = newSize.Height;
     }
 
-    public MySqlCommand GetCreateNodeCommand(string projectId, GmepDatabase db)
+    public MySqlCommand GetCreateNodeCommand(
+      string projectId,
+      string electricalProjectId,
+      GmepDatabase db
+    )
     {
       string query =
         @"
         INSERT INTO electrical_single_line_nodes
-        (id, project_id, loc_x, loc_y, input_connector_id, output_connector_id)
-        VALUES (@id, @projectId, @locX, @locY, @inputConnectorId, @outputConnectorId)
+        ( id,  project_id,  electrical_project_id,  loc_x,  loc_y,  input_connector_id,  output_connector_id) VALUES
+        (@id, @project_id, @electrical_project_id, @loc_x, @loc_y, @input_connector_id, @output_connector_id)
         ";
       MySqlCommand createNodeCommand = new MySqlCommand(query, db.Connection);
       createNodeCommand.Parameters.AddWithValue("@id", Guid.ToString());
-      createNodeCommand.Parameters.AddWithValue("@projectId", projectId);
-      createNodeCommand.Parameters.AddWithValue("@locX", Position.X);
-      createNodeCommand.Parameters.AddWithValue("@locY", Position.Y);
+      createNodeCommand.Parameters.AddWithValue("@project_id", projectId);
+      createNodeCommand.Parameters.AddWithValue("@electrical_project_id", electricalProjectId);
+      createNodeCommand.Parameters.AddWithValue("@loc_x", Position.X);
+      createNodeCommand.Parameters.AddWithValue("@loc_y", Position.Y);
       createNodeCommand.Parameters.AddWithValue(
-        "@inputConnectorId",
+        "@input_connector_id",
         Inputs.First().Guid.ToString()
       );
       createNodeCommand.Parameters.AddWithValue(
-        "@outputConnectorId",
+        "@output_connector_id",
         Outputs.First().Guid.ToString()
       );
       return createNodeCommand;
@@ -365,13 +381,13 @@ namespace GMEPNodeGraph.ViewModels
       string query =
         @"
         UPDATE electrical_single_line_nodes
-        SET loc_x = @locX, loc_y = @locY
+        SET loc_x = @loc_x, loc_y = @loc_y
         WHERE id = @id
         ";
       MySqlCommand updateNodeCommand = new MySqlCommand(query, db.Connection);
       updateNodeCommand.Parameters.AddWithValue("@id", Guid.ToString());
-      updateNodeCommand.Parameters.AddWithValue("@locX", Position.X);
-      updateNodeCommand.Parameters.AddWithValue("@locY", Position.Y);
+      updateNodeCommand.Parameters.AddWithValue("@loc_x", Position.X);
+      updateNodeCommand.Parameters.AddWithValue("@loc_y", Position.Y);
       return updateNodeCommand;
     }
 

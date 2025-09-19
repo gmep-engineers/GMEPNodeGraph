@@ -35,6 +35,7 @@ namespace GMEPNodeGraph.ViewModels
     public ElectricalTransformerViewModel(
       string Id,
       string ProjectId,
+      string ElectricalProjectId,
       string NodeId,
       string Name,
       int VoltageId,
@@ -77,7 +78,7 @@ namespace GMEPNodeGraph.ViewModels
         Guid = Guid.NewGuid();
         GmepDatabase db = new GmepDatabase();
         db.OpenConnection();
-        MySqlCommand createNodeCommand = GetCreateNodeCommand(ProjectId, db);
+        MySqlCommand createNodeCommand = GetCreateNodeCommand(ProjectId, ElectricalProjectId, db);
         createNodeCommand.ExecuteNonQuery();
         List<MySqlCommand> updateNodeCommand = Update(db);
         updateNodeCommand[0].ExecuteNonQuery();
@@ -108,27 +109,35 @@ namespace GMEPNodeGraph.ViewModels
       return output;
     }
 
-    public override List<MySqlCommand> Create(string projectId, GmepDatabase db)
+    public override List<MySqlCommand> Create(
+      string projectId,
+      string electricalProjectId,
+      GmepDatabase db
+    )
     {
       List<MySqlCommand> commands = new List<MySqlCommand>();
       string query =
         @"
         INSERT INTO electrical_transformers
-        (id, parent_id, project_id, node_id, kva_id, voltage_id, name, color_code, status_id)
-        VALUES (@id, @parentId, @projectId, @nodeId, @kvaId, @voltageId, @name, @colorCode, @statusId)
+        ( id,  parent_id,  electrical_project_id,  project_id,  node_id,  kva_id,  voltage_id,  name,  color_code,  status_id) VALUES
+        (@id, @parent_id, @electrical_project_id, @project_id, @node_id, @kva_id, @voltage_id, @name, @color_code, @status_id)
         ";
       MySqlCommand createTransformerCommand = new MySqlCommand(query, db.Connection);
       createTransformerCommand.Parameters.AddWithValue("@id", Id);
-      createTransformerCommand.Parameters.AddWithValue("@parentId", ParentId);
-      createTransformerCommand.Parameters.AddWithValue("@nodeId", Guid.ToString());
-      createTransformerCommand.Parameters.AddWithValue("@projectId", projectId);
+      createTransformerCommand.Parameters.AddWithValue("@parent_id", ParentId);
+      createTransformerCommand.Parameters.AddWithValue("@node_id", Guid.ToString());
+      createTransformerCommand.Parameters.AddWithValue("@project_id", projectId);
+      createTransformerCommand.Parameters.AddWithValue(
+        "@electrical_project_id",
+        electricalProjectId
+      );
       createTransformerCommand.Parameters.AddWithValue("@name", Name);
-      createTransformerCommand.Parameters.AddWithValue("@kvaId", KvaId);
-      createTransformerCommand.Parameters.AddWithValue("@voltageId", VoltageId);
-      createTransformerCommand.Parameters.AddWithValue("@colorCode", ColorCode);
-      createTransformerCommand.Parameters.AddWithValue("@statusId", StatusId);
+      createTransformerCommand.Parameters.AddWithValue("@kva_id", KvaId);
+      createTransformerCommand.Parameters.AddWithValue("@voltage_id", VoltageId);
+      createTransformerCommand.Parameters.AddWithValue("@color_code", ColorCode);
+      createTransformerCommand.Parameters.AddWithValue("@status_id", StatusId);
       commands.Add(createTransformerCommand);
-      commands.Add(GetCreateNodeCommand(projectId, db));
+      commands.Add(GetCreateNodeCommand(projectId, electricalProjectId, db));
       return commands;
     }
 

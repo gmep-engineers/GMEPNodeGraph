@@ -34,6 +34,7 @@ namespace GMEPNodeGraph.ViewModels
     public ElectricalMeterViewModel(
       string Id,
       string ProjectId,
+      string ElectricalProjectId,
       string NodeId,
       bool HasCts,
       bool IsSpace,
@@ -72,7 +73,7 @@ namespace GMEPNodeGraph.ViewModels
         Guid = Guid.NewGuid();
         GmepDatabase db = new GmepDatabase();
         db.OpenConnection();
-        MySqlCommand createNodeCommand = GetCreateNodeCommand(ProjectId, db);
+        MySqlCommand createNodeCommand = GetCreateNodeCommand(ProjectId, ElectricalProjectId, db);
         createNodeCommand.ExecuteNonQuery();
         List<MySqlCommand> updateNodeCommand = Update(db);
         updateNodeCommand[0].ExecuteNonQuery();
@@ -103,24 +104,29 @@ namespace GMEPNodeGraph.ViewModels
       return output;
     }
 
-    public override List<MySqlCommand> Create(string projectId, GmepDatabase db)
+    public override List<MySqlCommand> Create(
+      string projectId,
+      string electricalProjectId,
+      GmepDatabase db
+    )
     {
       List<MySqlCommand> commands = new List<MySqlCommand>();
       string query =
         @"
         INSERT INTO electrical_meters
-        (id, project_id, node_id, has_cts, is_space, status_id)
-        VALUES (@id, @projectId, @nodeId, @hasCts, @isSpace, @statusId)
+        ( id,  project_id,  electrical_project_id,  node_id,  has_cts,  is_space,  status_id) VALUES
+        (@id, @project_id, @electrical_project_id, @node_id, @has_cts, @is_space, @status_id)
         ";
       MySqlCommand createBreakerCommand = new MySqlCommand(query, db.Connection);
       createBreakerCommand.Parameters.AddWithValue("@id", Id);
-      createBreakerCommand.Parameters.AddWithValue("@nodeId", Guid.ToString());
-      createBreakerCommand.Parameters.AddWithValue("@projectId", projectId);
-      createBreakerCommand.Parameters.AddWithValue("@hasCts", HasCts);
-      createBreakerCommand.Parameters.AddWithValue("@isSpace", IsSpace);
-      createBreakerCommand.Parameters.AddWithValue("@statusId", StatusId);
+      createBreakerCommand.Parameters.AddWithValue("@node_id", Guid.ToString());
+      createBreakerCommand.Parameters.AddWithValue("@project_id", projectId);
+      createBreakerCommand.Parameters.AddWithValue("@electrical_project_id", electricalProjectId);
+      createBreakerCommand.Parameters.AddWithValue("@has_cts", HasCts);
+      createBreakerCommand.Parameters.AddWithValue("@is_space", IsSpace);
+      createBreakerCommand.Parameters.AddWithValue("@status_id", StatusId);
       commands.Add(createBreakerCommand);
-      commands.Add(GetCreateNodeCommand(projectId, db));
+      commands.Add(GetCreateNodeCommand(projectId, electricalProjectId, db));
       return commands;
     }
 

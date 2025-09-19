@@ -76,31 +76,32 @@ namespace GMEPNodeGraph.ViewModels
       OutputConnectorNodeGuid = Guid.Parse(OutputConnectorNodeId);
     }
 
-    public MySqlCommand Create(string projectId, GmepDatabase db)
+    public MySqlCommand Create(string projectId, string electricalProjectId, GmepDatabase db)
     {
       string query =
         @"
         INSERT INTO electrical_single_line_node_links
-        (id, project_id, input_connector_id, output_connector_id, input_connector_node_id, output_connector_node_id)
-        VALUES (@id, @projectId, @inputConnectorId, @outputConnectorId, @inputConnectorNodeId, @outputConnectorNodeId)
+        ( id,  project_id,  electrical_project_id,  input_connector_id,  output_connector_id,  input_connector_node_id,  output_connector_node_id) VALUES
+        (@id, @project_id, @electrical_project_id, @input_connector_id, @output_connector_id, @input_connector_node_id, @output_connector_node_id)
         ";
       MySqlCommand createNodeLinkCommand = new MySqlCommand(query, db.Connection);
       createNodeLinkCommand.Parameters.AddWithValue("@id", Guid.ToString());
-      createNodeLinkCommand.Parameters.AddWithValue("@projectId", projectId);
+      createNodeLinkCommand.Parameters.AddWithValue("@project_id", projectId);
+      createNodeLinkCommand.Parameters.AddWithValue("@electrical_project_id", electricalProjectId);
       createNodeLinkCommand.Parameters.AddWithValue(
-        "@inputConnectorId",
+        "@input_connector_id",
         InputConnectorGuid.ToString()
       );
       createNodeLinkCommand.Parameters.AddWithValue(
-        "@outputConnectorId",
+        "@output_connector_id",
         OutputConnectorGuid.ToString()
       );
       createNodeLinkCommand.Parameters.AddWithValue(
-        "@inputConnectorNodeId",
+        "@input_connector_node_id",
         InputConnectorNodeGuid.ToString()
       );
       createNodeLinkCommand.Parameters.AddWithValue(
-        "@outputConnectorNodeId",
+        "@output_connector_node_id",
         OutputConnectorNodeGuid.ToString()
       );
       return createNodeLinkCommand;

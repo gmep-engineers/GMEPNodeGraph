@@ -31,7 +31,6 @@ namespace GMEPNodeGraph.ViewModels
     public string ProjectNo
     {
       get => _ProjectNo;
-
       set => RaisePropertyChangedIfSet(ref _ProjectNo, value);
     }
     string _ProjectNo = "Project #";
@@ -56,6 +55,13 @@ namespace GMEPNodeGraph.ViewModels
       set => RaisePropertyChangedIfSet(ref _ProjectId, value);
     }
     string _ProjectId = string.Empty;
+
+    public string ElectricalProjectId
+    {
+      get => _ElectricalProjectId;
+      set => RaisePropertyChangedIfSet(ref _ElectricalProjectId, value);
+    }
+    string _ElectricalProjectId = string.Empty;
 
     public string ProjectName
     {
@@ -94,13 +100,11 @@ namespace GMEPNodeGraph.ViewModels
     Queue<MySqlCommand> CommandQueue = new Queue<MySqlCommand>();
     GmepDatabase db = new GmepDatabase();
 
-
     public ViewModelCommand LoadProjectNodesCommand =>
       _LoadProjectNodesCommand.Get(LoadProjectNodes);
     ViewModelCommandHandler _LoadProjectNodesCommand = new ViewModelCommandHandler();
 
-    public ViewModelCommand LoadProjectCommand =>
-     _LoadProjectCommand.Get(LoadProject);
+    public ViewModelCommand LoadProjectCommand => _LoadProjectCommand.Get(LoadProject);
     ViewModelCommandHandler _LoadProjectCommand = new ViewModelCommandHandler();
 
     public ViewModelCommand AddServiceCommand => _AddServiceCommand.Get(AddService);
@@ -256,6 +260,7 @@ namespace GMEPNodeGraph.ViewModels
       ElectricalServiceViewModel service = new ElectricalServiceViewModel(
         Guid.NewGuid().ToString(),
         ProjectId,
+        ElectricalProjectId,
         Guid.NewGuid().ToString(),
         "Service Feeder",
         1,
@@ -266,7 +271,7 @@ namespace GMEPNodeGraph.ViewModels
         string.Empty
       );
       _NodeViewModels.Add(service);
-      service.Create(ProjectId, db).ForEach(CommandQueue.Enqueue);
+      service.Create(ProjectId, ElectricalProjectId, db).ForEach(CommandQueue.Enqueue);
     }
 
     public void LoadNodeViewModel(DefaultNodeViewModel viewModel)
@@ -301,6 +306,7 @@ namespace GMEPNodeGraph.ViewModels
       ElectricalMainBreakerViewModel mainBreaker = new ElectricalMainBreakerViewModel(
         Guid.NewGuid().ToString(),
         ProjectId,
+        ElectricalProjectId,
         Guid.NewGuid().ToString(),
         1,
         3,
@@ -312,7 +318,7 @@ namespace GMEPNodeGraph.ViewModels
         string.Empty
       );
       _NodeViewModels.Add(mainBreaker);
-      mainBreaker.Create(ProjectId, db).ForEach(CommandQueue.Enqueue);
+      mainBreaker.Create(ProjectId, ElectricalProjectId, db).ForEach(CommandQueue.Enqueue);
     }
 
     void AddMeter()
@@ -321,6 +327,7 @@ namespace GMEPNodeGraph.ViewModels
       ElectricalMeterViewModel meter = new ElectricalMeterViewModel(
         Guid.NewGuid().ToString(),
         ProjectId,
+        ElectricalProjectId,
         Guid.NewGuid().ToString(),
         false,
         false,
@@ -330,7 +337,7 @@ namespace GMEPNodeGraph.ViewModels
         string.Empty
       );
       _NodeViewModels.Add(meter);
-      meter.Create(ProjectId, db).ForEach(CommandQueue.Enqueue);
+      meter.Create(ProjectId, ElectricalProjectId, db).ForEach(CommandQueue.Enqueue);
     }
 
     void AddBus()
@@ -339,6 +346,7 @@ namespace GMEPNodeGraph.ViewModels
       ElectricalDistributionBusViewModel distributionBus = new ElectricalDistributionBusViewModel(
         Guid.NewGuid().ToString(),
         ProjectId,
+        ElectricalProjectId,
         Guid.NewGuid().ToString(),
         1,
         1,
@@ -347,7 +355,7 @@ namespace GMEPNodeGraph.ViewModels
         string.Empty
       );
       _NodeViewModels.Add(distributionBus);
-      distributionBus.Create(ProjectId, db).ForEach(CommandQueue.Enqueue);
+      distributionBus.Create(ProjectId, ElectricalProjectId, db).ForEach(CommandQueue.Enqueue);
     }
 
     void AddPanel()
@@ -356,6 +364,7 @@ namespace GMEPNodeGraph.ViewModels
       ElectricalPanelViewModel panel = new ElectricalPanelViewModel(
         Guid.NewGuid().ToString(),
         ProjectId,
+        ElectricalProjectId,
         Guid.NewGuid().ToString(),
         "Panel",
         1,
@@ -371,7 +380,7 @@ namespace GMEPNodeGraph.ViewModels
         string.Empty
       );
       _NodeViewModels.Add(panel);
-      panel.Create(ProjectId, db).ForEach(CommandQueue.Enqueue);
+      panel.Create(ProjectId, ElectricalProjectId, db).ForEach(CommandQueue.Enqueue);
     }
 
     void AddDistributionBreaker()
@@ -381,6 +390,7 @@ namespace GMEPNodeGraph.ViewModels
         new ElectricalDistributionBreakerViewModel(
           Guid.NewGuid().ToString(),
           ProjectId,
+          ElectricalProjectId,
           Guid.NewGuid().ToString(),
           1,
           3,
@@ -391,7 +401,7 @@ namespace GMEPNodeGraph.ViewModels
           string.Empty
         );
       _NodeViewModels.Add(distributionBreaker);
-      distributionBreaker.Create(ProjectId, db).ForEach(CommandQueue.Enqueue);
+      distributionBreaker.Create(ProjectId, ElectricalProjectId, db).ForEach(CommandQueue.Enqueue);
     }
 
     void AddTransformer()
@@ -400,6 +410,7 @@ namespace GMEPNodeGraph.ViewModels
       ElectricalTransformerViewModel transformer = new ElectricalTransformerViewModel(
         Guid.NewGuid().ToString(),
         ProjectId,
+        ElectricalProjectId,
         Guid.NewGuid().ToString(),
         "Xfmr",
         1,
@@ -411,7 +422,7 @@ namespace GMEPNodeGraph.ViewModels
         string.Empty
       );
       _NodeViewModels.Add(transformer);
-      transformer.Create(ProjectId, db).ForEach(CommandQueue.Enqueue);
+      transformer.Create(ProjectId, ElectricalProjectId, db).ForEach(CommandQueue.Enqueue);
     }
 
     void AddPanelBreaker()
@@ -420,6 +431,7 @@ namespace GMEPNodeGraph.ViewModels
       ElectricalPanelBreakerViewModel panelBreaker = new ElectricalPanelBreakerViewModel(
         Guid.NewGuid().ToString(),
         ProjectId,
+        ElectricalProjectId,
         Guid.NewGuid().ToString(),
         1,
         3,
@@ -429,7 +441,7 @@ namespace GMEPNodeGraph.ViewModels
         string.Empty
       );
       _NodeViewModels.Add(panelBreaker);
-      panelBreaker.Create(ProjectId, db).ForEach(CommandQueue.Enqueue);
+      panelBreaker.Create(ProjectId, ElectricalProjectId, db).ForEach(CommandQueue.Enqueue);
     }
 
     void AddDisconnect()
@@ -438,6 +450,7 @@ namespace GMEPNodeGraph.ViewModels
       ElectricalDisconnectViewModel panelBreaker = new ElectricalDisconnectViewModel(
         Guid.NewGuid().ToString(),
         ProjectId,
+        ElectricalProjectId,
         Guid.NewGuid().ToString(),
         1,
         1,
@@ -448,7 +461,7 @@ namespace GMEPNodeGraph.ViewModels
         string.Empty
       );
       _NodeViewModels.Add(panelBreaker);
-      panelBreaker.Create(ProjectId, db).ForEach(CommandQueue.Enqueue);
+      panelBreaker.Create(ProjectId, ElectricalProjectId, db).ForEach(CommandQueue.Enqueue);
     }
 
     void AddEquipment()
@@ -457,6 +470,7 @@ namespace GMEPNodeGraph.ViewModels
       ElectricalEquipmentViewModel equipment = new ElectricalEquipmentViewModel(
         Guid.NewGuid().ToString(),
         ProjectId,
+        ElectricalProjectId,
         Guid.NewGuid().ToString(),
         "Equipment",
         3,
@@ -471,7 +485,7 @@ namespace GMEPNodeGraph.ViewModels
         string.Empty
       );
       _NodeViewModels.Add(equipment);
-      equipment.Create(ProjectId, db).ForEach(CommandQueue.Enqueue);
+      equipment.Create(ProjectId, ElectricalProjectId, db).ForEach(CommandQueue.Enqueue);
     }
 
     void AddGroupNode()
@@ -485,7 +499,7 @@ namespace GMEPNodeGraph.ViewModels
         900
       );
       _GroupNodeViewModels.Add(group);
-      CommandQueue.Enqueue(group.Create(ProjectId, db));
+      CommandQueue.Enqueue(group.Create(ProjectId, ElectricalProjectId, db));
     }
 
     void RemoveNodes()
@@ -605,7 +619,7 @@ namespace GMEPNodeGraph.ViewModels
         param.OutputConnectorNodeGuid.ToString()
       );
       _NodeLinkViewModels.Add(nodeLink);
-      CommandQueue.Enqueue(nodeLink.Create(ProjectId, db));
+      CommandQueue.Enqueue(nodeLink.Create(ProjectId, ElectricalProjectId, db));
     }
 
     void Disconnected(DisconnectedLinkOperationEventArgs param)
@@ -617,6 +631,14 @@ namespace GMEPNodeGraph.ViewModels
 
     void SetParentChildRels()
     {
+      /*
+       * Sets the ParentId based on what is generally evaluated in field.
+       * This is distinct from the node link parent-child relationships.
+       *
+       * For example, components such as breakers are not evaluated in
+       * field as feeding another component, hence they are not considered
+       * "inheritable" in this scope.
+       */
       foreach (DefaultNodeViewModel node in _NodeViewModels)
       {
         node.ParentId = string.Empty;
@@ -680,49 +702,54 @@ namespace GMEPNodeGraph.ViewModels
       }
     }
 
-    void LoadProject() {
-      if (string.IsNullOrEmpty(ProjectNo) || ProjectNo == "Project #") {
+    void LoadProject()
+    {
+      if (string.IsNullOrEmpty(ProjectNo) || ProjectNo == "Project #")
+      {
         return;
       }
       var oldProjectVersion = ProjectVersion;
-      ProjectVersions = db.GetProjectVersions(ProjectNo);
+      ProjectVersions = db.GetElectricalProjectVersions(ProjectNo);
 
-      if (ProjectVersions.Count == 0) {
+      if (ProjectVersions.Count == 0)
+      {
         ProjectName = "Project not found";
         return;
       }
-      if (oldProjectVersion == ProjectVersion) {
+      if (oldProjectVersion == ProjectVersion)
+      {
         LoadProjectNodes();
       }
     }
+
     void LoadProjectNodes()
     {
       ClearNodes();
-      (ProjectName, ProjectId, ProjectVersion) = db.GetProjectNameIdVersion(
-       ProjectNo,
-       ProjectVersion
-     );
-      if (ProjectVersion == string.Empty) {
-        (ProjectName, ProjectId, ProjectVersion) = db.GetProjectNameIdVersion(
+      (ProjectName, ProjectId, ElectricalProjectId, ProjectVersion) = db.GetProjectNameIdVersion(
         ProjectNo,
-        "latest"
-     );
+        ProjectVersion
+      );
+      if (ProjectVersion == string.Empty)
+      {
+        (ProjectName, ProjectId, ElectricalProjectId, ProjectVersion) = db.GetProjectNameIdVersion(
+          ProjectNo,
+          "latest"
+        );
       }
-      db.GetGroupNodes(ProjectId).ForEach(LoadGroupNodeViewModel);
-      db.GetElectricalDistributionBreakers(ProjectId).ForEach(LoadNodeViewModel);
-      db.GetElectricalDistributionBuses(ProjectId).ForEach(LoadNodeViewModel);
-      db.GetElectricalMainBreakers(ProjectId).ForEach(LoadNodeViewModel);
-      db.GetElectricalMeters(ProjectId).ForEach(LoadNodeViewModel);
-      db.GetElectricalPanels(ProjectId).ForEach(LoadNodeViewModel);
-      db.GetElectricalPanelBreakers(ProjectId).ForEach(LoadNodeViewModel);
-      db.GetElectricalServices(ProjectId).ForEach(LoadNodeViewModel);
-      db.GetElectricalDisconnects(ProjectId).ForEach(LoadNodeViewModel);
-      db.GetElectricalTransformers(ProjectId).ForEach(LoadNodeViewModel);
-      db.GetElectricalEquipment(ProjectId).ForEach(LoadNodeViewModel);
-      db.GetNodeLinks(ProjectId).ForEach(LoadNodeLinkViewModel);
+      db.GetGroupNodes(ElectricalProjectId).ForEach(LoadGroupNodeViewModel);
+      db.GetElectricalDistributionBreakers(ElectricalProjectId).ForEach(LoadNodeViewModel);
+      db.GetElectricalDistributionBuses(ElectricalProjectId).ForEach(LoadNodeViewModel);
+      db.GetElectricalMainBreakers(ElectricalProjectId).ForEach(LoadNodeViewModel);
+      db.GetElectricalMeters(ElectricalProjectId).ForEach(LoadNodeViewModel);
+      db.GetElectricalPanels(ElectricalProjectId).ForEach(LoadNodeViewModel);
+      db.GetElectricalPanelBreakers(ElectricalProjectId).ForEach(LoadNodeViewModel);
+      db.GetElectricalServices(ElectricalProjectId).ForEach(LoadNodeViewModel);
+      db.GetElectricalDisconnects(ElectricalProjectId).ForEach(LoadNodeViewModel);
+      db.GetElectricalTransformers(ElectricalProjectId).ForEach(LoadNodeViewModel);
+      db.GetElectricalEquipment(ElectricalProjectId).ForEach(LoadNodeViewModel);
+      db.GetNodeLinks(ElectricalProjectId).ForEach(LoadNodeLinkViewModel);
       ProjectLoaded = true;
       Save();
-
     }
 
     void Save()

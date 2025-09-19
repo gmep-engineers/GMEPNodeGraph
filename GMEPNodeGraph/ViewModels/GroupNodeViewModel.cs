@@ -107,23 +107,24 @@ namespace GMEPNodeGraph.ViewModels
       this.InnerHeight = Height + 21; // for some reason, height keeps reducing by exactly 21, so add 21 back
     }
 
-    public MySqlCommand Create(string projectId, GmepDatabase db)
+    public MySqlCommand Create(string projectId, string electricalProjectId, GmepDatabase db)
     {
       string query =
         @"
         INSERT INTO electrical_single_line_groups
-        (id,project_id, name, loc_x, loc_y, width, height, status_id)
-        VALUES (@id, @projectId, @name, @locX, @locY, @width, @height, @statusId)
+        ( id,  project_id,  electrical_project_id,  name,  loc_x,  loc_y,  width,  height,  status_id) VALUES
+        (@id, @project_id, @electrical_project_id, @name, @loc_x, @loc_y, @width, @height, @status_id)
         ";
       MySqlCommand createGroupCommand = new MySqlCommand(query, db.Connection);
       createGroupCommand.Parameters.AddWithValue("@id", Guid.ToString());
-      createGroupCommand.Parameters.AddWithValue("@projectId", projectId);
+      createGroupCommand.Parameters.AddWithValue("@project_id", projectId);
+      createGroupCommand.Parameters.AddWithValue("@electrical_project_id", electricalProjectId);
       createGroupCommand.Parameters.AddWithValue("@name", Name);
-      createGroupCommand.Parameters.AddWithValue("@locX", Position.X);
-      createGroupCommand.Parameters.AddWithValue("@locY", Position.Y);
+      createGroupCommand.Parameters.AddWithValue("@loc_x", Position.X);
+      createGroupCommand.Parameters.AddWithValue("@loc_y", Position.Y);
       createGroupCommand.Parameters.AddWithValue("@width", InnerWidth);
       createGroupCommand.Parameters.AddWithValue("@height", InnerHeight);
-      createGroupCommand.Parameters.AddWithValue("@statusId", StatusId);
+      createGroupCommand.Parameters.AddWithValue("@status_id", StatusId);
       return createGroupCommand;
     }
 

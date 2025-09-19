@@ -63,6 +63,7 @@ namespace GMEPNodeGraph.ViewModels
     public ElectricalPanelViewModel(
       string Id,
       string ProjectId,
+      string ElectricalProjectId,
       string NodeId,
       string Name,
       int VoltageId,
@@ -125,7 +126,7 @@ namespace GMEPNodeGraph.ViewModels
         Guid = Guid.NewGuid();
         GmepDatabase db = new GmepDatabase();
         db.OpenConnection();
-        MySqlCommand createNodeCommand = GetCreateNodeCommand(ProjectId, db);
+        MySqlCommand createNodeCommand = GetCreateNodeCommand(ProjectId, ElectricalProjectId, db);
         createNodeCommand.ExecuteNonQuery();
         List<MySqlCommand> updateNodeCommand = Update(db);
         updateNodeCommand[0].ExecuteNonQuery();
@@ -148,31 +149,36 @@ namespace GMEPNodeGraph.ViewModels
       return output;
     }
 
-    public override List<MySqlCommand> Create(string projectId, GmepDatabase db)
+    public override List<MySqlCommand> Create(
+      string projectId,
+      string electricalProjectId,
+      GmepDatabase db
+    )
     {
       List<MySqlCommand> commands = new List<MySqlCommand>();
       string query =
         @"
         INSERT INTO electrical_panels
-        (id, parent_id, project_id, node_id, bus_amp_rating_id, main_amp_rating_id, is_mlo, is_recessed, voltage_id, color_code, num_breakers, name, status_id)
-        VALUES (@id, @parentId, @projectId, @nodeId, @busAmpRatingId, @mainAmpRatingId, @isMlo, @isRecessed, @voltageId, @colorCode, @numBreakers, @name, @statusId)
+        ( id,  parent_id,  project_id,  electrical_project_id,  node_id,  bus_amp_rating_id,  main_amp_rating_id,  is_mlo,  is_recessed,  voltage_id,  color_code,  num_breakers,  name,  status_id) VALUES
+        (@id, @parent_id, @project_id, @electrical_project_id, @node_id, @bus_amp_rating_id, @main_amp_rating_id, @is_mlo, @is_recessed, @voltage_id, @color_code, @num_breakers, @name, @status_id)
         ";
       MySqlCommand createPanelCommand = new MySqlCommand(query, db.Connection);
       createPanelCommand.Parameters.AddWithValue("@id", Id);
-      createPanelCommand.Parameters.AddWithValue("@parentId", ParentId);
-      createPanelCommand.Parameters.AddWithValue("@projectId", projectId);
-      createPanelCommand.Parameters.AddWithValue("@nodeId", Guid.ToString());
-      createPanelCommand.Parameters.AddWithValue("@busAmpRatingId", PanelAmpRatingId);
-      createPanelCommand.Parameters.AddWithValue("@mainAmpRatingId", MainAmpRatingId);
-      createPanelCommand.Parameters.AddWithValue("@isMlo", IsMlo);
-      createPanelCommand.Parameters.AddWithValue("@isRecessed", IsRecessed);
-      createPanelCommand.Parameters.AddWithValue("@voltageId", VoltageId);
-      createPanelCommand.Parameters.AddWithValue("@colorCode", ColorCode);
-      createPanelCommand.Parameters.AddWithValue("@numBreakers", NumBreakers);
+      createPanelCommand.Parameters.AddWithValue("@parent_id", ParentId);
+      createPanelCommand.Parameters.AddWithValue("@project_id", projectId);
+      createPanelCommand.Parameters.AddWithValue("@electrical_project_id", electricalProjectId);
+      createPanelCommand.Parameters.AddWithValue("@node_id", Guid.ToString());
+      createPanelCommand.Parameters.AddWithValue("@bus_amp_rating_id", PanelAmpRatingId);
+      createPanelCommand.Parameters.AddWithValue("@main_amp_rating_id", MainAmpRatingId);
+      createPanelCommand.Parameters.AddWithValue("@is_mlo", IsMlo);
+      createPanelCommand.Parameters.AddWithValue("@is_recessed", IsRecessed);
+      createPanelCommand.Parameters.AddWithValue("@voltage_id", VoltageId);
+      createPanelCommand.Parameters.AddWithValue("@color_code", ColorCode);
+      createPanelCommand.Parameters.AddWithValue("@num_breakers", NumBreakers);
       createPanelCommand.Parameters.AddWithValue("@name", Name);
-      createPanelCommand.Parameters.AddWithValue("@statusId", StatusId);
+      createPanelCommand.Parameters.AddWithValue("@status_id", StatusId);
       commands.Add(createPanelCommand);
-      commands.Add(GetCreateNodeCommand(projectId, db));
+      commands.Add(GetCreateNodeCommand(projectId, electricalProjectId, db));
       return commands;
     }
 

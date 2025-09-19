@@ -35,6 +35,7 @@ namespace GMEPNodeGraph.ViewModels
     public ElectricalServiceViewModel(
       string Id,
       string ProjectId,
+      string ElectricalProjectId,
       string NodeId,
       string Name,
       int VoltageId,
@@ -68,7 +69,11 @@ namespace GMEPNodeGraph.ViewModels
         Guid = Guid.NewGuid();
         GmepDatabase db = new GmepDatabase();
         db.OpenConnection();
-        MySqlCommand createNodeCommand = GetCreateSerivceNodeCommand(ProjectId, db);
+        MySqlCommand createNodeCommand = GetCreateSerivceNodeCommand(
+          ProjectId,
+          ElectricalProjectId,
+          db
+        );
         createNodeCommand.ExecuteNonQuery();
         List<MySqlCommand> updateNodeCommand = Update(db);
         updateNodeCommand[0].ExecuteNonQuery();
@@ -89,47 +94,60 @@ namespace GMEPNodeGraph.ViewModels
       return Outputs.FirstOrDefault(arg => arg.Guid == guid);
     }
 
-    public MySqlCommand GetCreateSerivceNodeCommand(string projectId, GmepDatabase db)
+    public MySqlCommand GetCreateSerivceNodeCommand(
+      string projectId,
+      string electricalProjectId,
+      GmepDatabase db
+    )
     {
       string query =
         @"
         INSERT INTO electrical_single_line_nodes
-        (id, project_id, loc_x, loc_y, input_connector_id, output_connector_id )
-        VALUES (@id, @projectId, @locX, @locY, @inputConnectorId, @outputConnectorId)
+        ( id,  project_id,  electrical_project_id,  loc_x,  loc_y,  input_connector_id,  output_connector_id) VALUES
+        (@id, @project_id, @electrical_project_id, @loc_x, @loc_y, @input_connector_id, @output_connector_id)
         ";
       MySqlCommand createNodeCommand = new MySqlCommand(query, db.Connection);
       createNodeCommand.Parameters.AddWithValue("@id", Guid.ToString());
-      createNodeCommand.Parameters.AddWithValue("@projectId", projectId);
-      createNodeCommand.Parameters.AddWithValue("@locX", Position.X);
-      createNodeCommand.Parameters.AddWithValue("@locY", Position.Y);
-      createNodeCommand.Parameters.AddWithValue("@inputConnectorId", "0");
+      createNodeCommand.Parameters.AddWithValue("@project_id", projectId);
+      createNodeCommand.Parameters.AddWithValue("@electrical_project_id", electricalProjectId);
+      createNodeCommand.Parameters.AddWithValue("@loc_x", Position.X);
+      createNodeCommand.Parameters.AddWithValue("@loc_y", Position.Y);
+      createNodeCommand.Parameters.AddWithValue("@input_connector_id", "0");
       createNodeCommand.Parameters.AddWithValue(
-        "@outputConnectorId",
+        "@output_connector_id",
         Outputs.First().Guid.ToString()
       );
       return createNodeCommand;
     }
 
-    public override List<MySqlCommand> Create(string projectId, GmepDatabase db)
+    public override List<MySqlCommand> Create(
+      string projectId,
+      string electricalProjectId,
+      GmepDatabase db
+    )
     {
       List<MySqlCommand> commands = new List<MySqlCommand>();
       string query =
         @"
         INSERT INTO electrical_services
-        (id, project_id, node_id, name, electrical_service_amp_rating_id, electrical_service_voltage_id, color_code, status_id)
-        VALUES (@id, @projectId, @nodeId, @name, @ampRatingId, @voltageId, @colorCode, @statusId)
+        ( id,  project_id,  electrical_project_id,  node_id,  name,  electrical_service_amp_rating_id,  electrical_service_voltage_id,  color_code,  status_id) VALUES
+        (@id, @project_id, @electrical_project_id, @node_id, @name, @electrical_service_amp_rating_id, @electrical_service_voltage_id, @color_code, @status_id) 
         ";
       MySqlCommand createServiceCommand = new MySqlCommand(query, db.Connection);
       createServiceCommand.Parameters.AddWithValue("@id", Id);
-      createServiceCommand.Parameters.AddWithValue("@projectId", projectId);
-      createServiceCommand.Parameters.AddWithValue("@nodeId", Guid.ToString());
+      createServiceCommand.Parameters.AddWithValue("@project_id", projectId);
+      createServiceCommand.Parameters.AddWithValue("@electrical_project_id", electricalProjectId);
+      createServiceCommand.Parameters.AddWithValue("@node_id", Guid.ToString());
       createServiceCommand.Parameters.AddWithValue("@name", Name);
-      createServiceCommand.Parameters.AddWithValue("@ampRatingId", AmpRatingId);
-      createServiceCommand.Parameters.AddWithValue("@voltageId", VoltageId);
-      createServiceCommand.Parameters.AddWithValue("@colorCode", ColorCode);
-      createServiceCommand.Parameters.AddWithValue("@statusId", StatusId);
+      createServiceCommand.Parameters.AddWithValue(
+        "@electrical_service_amp_rating_id",
+        AmpRatingId
+      );
+      createServiceCommand.Parameters.AddWithValue("@electrical_service_voltage_id", VoltageId);
+      createServiceCommand.Parameters.AddWithValue("@color_code", ColorCode);
+      createServiceCommand.Parameters.AddWithValue("@status_id", StatusId);
       commands.Add(createServiceCommand);
-      commands.Add(GetCreateSerivceNodeCommand(projectId, db));
+      commands.Add(GetCreateSerivceNodeCommand(projectId, electricalProjectId, db));
       return commands;
     }
 

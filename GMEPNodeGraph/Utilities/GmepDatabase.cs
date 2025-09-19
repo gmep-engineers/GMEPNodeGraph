@@ -96,53 +96,68 @@ namespace GMEPNodeGraph.Utilities
       return result;
     }
 
-    public (string, string, string) GetProjectNameIdVersion(string projectNo, string projectVersion)
+    public (string, string, string, string) GetProjectNameIdVersion(
+      string projectNo,
+      string projectVersion
+    )
     {
-      string query =
-        "SELECT gmep_project_name, id, version FROM projects WHERE gmep_project_no = @projectNo AND version = @projectVersion";
-      if (projectVersion == "latest")
-      {
-        query =
-          "SELECT gmep_project_name, id, version FROM projects WHERE gmep_project_no = @projectNo ORDER BY version DESC";
-      }
+      string query = // HERE check
+        @"
+        SELECT
+        projects.gmep_project_name,
+        projects.id as project_id,
+        electrical_projects.id as electrical_project_id,
+        electrical_projects.version
+        FROM projects
+        LEFT JOIN electrical_projects ON electrical_projects.project_id = projects.id
+        WHERE gmep_project_no = @projectNo
+        AND electrical_projects.version = @projectVersion
+        ";
+
       OpenConnection();
       MySqlCommand command = new MySqlCommand(query, Connection);
-
+      int projectVersionNum = 1;
       if (projectVersion != "latest")
       {
-        if (Int32.TryParse(projectVersion, out int projectVersionInt))
+        if (Int32.TryParse(projectVersion, out int v))
         {
-          command.Parameters.AddWithValue("@projectVersion", projectVersionInt);
-        }
-        else
-        {
-          return (string.Empty, string.Empty, string.Empty);
+          projectVersionNum = v;
         }
       }
 
       command.Parameters.AddWithValue("@projectNo", projectNo);
+      command.Parameters.AddWithValue("@projectVersion", projectVersionNum);
       MySqlDataReader reader = command.ExecuteReader();
 
-      string id = string.Empty;
+      string projectId = string.Empty;
+      string electricalProjectId = string.Empty;
       string name = string.Empty;
       string version = string.Empty;
       if (reader.Read())
       {
-        id = GetSafeString(reader, "id");
+        projectId = GetSafeString(reader, "project_id");
+        electricalProjectId = GetSafeString(reader, "electrical_project_id");
         name = GetSafeString(reader, "gmep_project_name");
         version = GetSafeInt(reader, "version").ToString();
       }
       reader.Close();
 
       CloseConnection();
-      return (name, id, version);
+      return (name, projectId, electricalProjectId, version);
     }
 
-    public List<string> GetProjectVersions(string projectNo)
+    public List<string> GetElectricalProjectVersions(string projectNo)
     {
       List<string> projectVersions = new List<string>();
       string query =
-        "SELECT version FROM projects WHERE gmep_project_no = @projectNo ORDER BY version DESC";
+        @"
+        SELECT electrical_projects.version
+        FROM electrical_projects
+        LEFT JOIN
+        projects on projects.id = electrical_projects.project_id
+        WHERE
+        projects.gmep_project_no = @projectNo
+";
       OpenConnection();
       MySqlCommand command = new MySqlCommand(query, Connection);
       command.Parameters.AddWithValue("@projectNo", projectNo);
@@ -158,13 +173,14 @@ namespace GMEPNodeGraph.Utilities
       return projectVersions;
     }
 
-    public List<GroupNodeViewModel> GetGroupNodes(string projectId)
+    public List<GroupNodeViewModel> GetGroupNodes(string electricalProjectId)
     {
       List<GroupNodeViewModel> groups = new List<GroupNodeViewModel>();
-      string query = "SELECT * FROM electrical_single_line_groups WHERE project_id = @projectId";
+      string query =
+        "SELECT * FROM electrical_single_line_groups WHERE electrical_project_id = @electricalProjectId";
       OpenConnection();
       MySqlCommand command = new MySqlCommand(query, Connection);
-      command.Parameters.AddWithValue("@projectId", projectId);
+      command.Parameters.AddWithValue("@electricalProjectId", electricalProjectId);
       MySqlDataReader reader = command.ExecuteReader();
       while (reader.Read())
       {
@@ -182,7 +198,7 @@ namespace GMEPNodeGraph.Utilities
       return groups;
     }
 
-    public List<ElectricalServiceViewModel> GetElectricalServices(string projectId)
+    public List<ElectricalServiceViewModel> GetElectricalServices(string electricalProjectId)
     {
       List<ElectricalServiceViewModel> services = new List<ElectricalServiceViewModel>();
       string query =
@@ -194,23 +210,25 @@ namespace GMEPNodeGraph.Utilities
         electrical_services.status_id,
         electrical_services.electrical_service_voltage_id,
         electrical_services.electrical_service_amp_rating_id,
+        electrical_services.project_id,
         electrical_single_line_nodes.id as node_id,  
         electrical_single_line_nodes.loc_x,   
         electrical_single_line_nodes.loc_y,
         electrical_single_line_nodes.output_connector_id
         from electrical_services
         LEFT JOIN electrical_single_line_nodes ON electrical_single_line_nodes.id = electrical_services.node_id
-        WHERE electrical_services.project_id = @projectId";
+        WHERE electrical_services.electrical_project_id = @electricalProjectId";
       OpenConnection();
       MySqlCommand command = new MySqlCommand(query, Connection);
-      command.Parameters.AddWithValue("@projectId", projectId);
+      command.Parameters.AddWithValue("@electricalProjectId", electricalProjectId);
       MySqlDataReader reader = command.ExecuteReader();
       while (reader.Read())
       {
         services.Add(
           new ElectricalServiceViewModel(
             GetSafeString(reader, "service_id"),
-            projectId,
+            GetSafeString(reader, "project_id"),
+            electricalProjectId,
             GetSafeString(reader, "node_id"),
             GetSafeString(reader, "name"),
             GetSafeInt(reader, "electrical_service_voltage_id"),
@@ -226,7 +244,7 @@ namespace GMEPNodeGraph.Utilities
       return services;
     }
 
-    public List<ElectricalMeterViewModel> GetElectricalMeters(string projectId)
+    public List<ElectricalMeterViewModel> GetElectricalMeters(string electricalProjectId)
     {
       List<ElectricalMeterViewModel> meters = new List<ElectricalMeterViewModel>();
       string query =
@@ -236,6 +254,7 @@ namespace GMEPNodeGraph.Utilities
         electrical_meters.has_cts,
         electrical_meters.is_space,
         electrical_meters.status_id,
+        electrical_meters.project_id,
         electrical_single_line_nodes.id as node_id,  
         electrical_single_line_nodes.loc_x,   
         electrical_single_line_nodes.loc_y,
@@ -243,18 +262,19 @@ namespace GMEPNodeGraph.Utilities
         electrical_single_line_nodes.output_connector_id
         from electrical_meters
         LEFT JOIN electrical_single_line_nodes ON electrical_single_line_nodes.id = electrical_meters.node_id
-        WHERE electrical_meters.project_id = @projectId
+        WHERE electrical_meters.electrical_project_id = @electricalProjectId
         ";
       OpenConnection();
       MySqlCommand command = new MySqlCommand(query, Connection);
-      command.Parameters.AddWithValue("@projectId", projectId);
+      command.Parameters.AddWithValue("@electricalProjectId", electricalProjectId);
       MySqlDataReader reader = command.ExecuteReader();
       while (reader.Read())
       {
         meters.Add(
           new ElectricalMeterViewModel(
-            GetSafeString(reader, "meter_id"),
-            projectId,
+            GetSafeString(reader, "meter_id"), // HERE
+            GetSafeString(reader, "project_id"),
+            electricalProjectId,
             GetSafeString(reader, "node_id"),
             GetSafeBoolean(reader, "has_cts"),
             GetSafeBoolean(reader, "is_space"),
@@ -269,7 +289,9 @@ namespace GMEPNodeGraph.Utilities
       return meters;
     }
 
-    public List<ElectricalMainBreakerViewModel> GetElectricalMainBreakers(string projectId)
+    public List<ElectricalMainBreakerViewModel> GetElectricalMainBreakers(
+      string electricalProjectId
+    )
     {
       List<ElectricalMainBreakerViewModel> mainBreakers =
         new List<ElectricalMainBreakerViewModel>();
@@ -282,6 +304,7 @@ namespace GMEPNodeGraph.Utilities
         electrical_main_breakers.num_poles,
         electrical_main_breakers.status_id,
         electrical_main_breakers.amp_rating_id,
+        electrical_main_breakers.project_id,
         electrical_single_line_nodes.id as node_id,  
         electrical_single_line_nodes.loc_x,   
         electrical_single_line_nodes.loc_y,
@@ -290,18 +313,19 @@ namespace GMEPNodeGraph.Utilities
         FROM electrical_main_breakers
         LEFT JOIN statuses ON statuses.id = electrical_main_breakers.status_id
         LEFT JOIN electrical_single_line_nodes ON electrical_single_line_nodes.id = electrical_main_breakers.node_id
-        WHERE electrical_main_breakers.project_id = @projectId
+        WHERE electrical_main_breakers.electrical_project_id = @electricalProjectId
         ";
       OpenConnection();
       MySqlCommand command = new MySqlCommand(query, Connection);
-      command.Parameters.AddWithValue("@projectId", projectId);
+      command.Parameters.AddWithValue("@electricalProjectId", electricalProjectId);
       MySqlDataReader reader = command.ExecuteReader();
       while (reader.Read())
       {
         mainBreakers.Add(
           new ElectricalMainBreakerViewModel(
             GetSafeString(reader, "breaker_id"),
-            projectId,
+            GetSafeString(reader, "project_id"),
+            electricalProjectId,
             GetSafeString(reader, "node_id"),
             GetSafeInt(reader, "amp_rating_id"),
             GetSafeInt(reader, "num_poles"),
@@ -318,7 +342,9 @@ namespace GMEPNodeGraph.Utilities
       return mainBreakers;
     }
 
-    public List<ElectricalDistributionBusViewModel> GetElectricalDistributionBuses(string projectId)
+    public List<ElectricalDistributionBusViewModel> GetElectricalDistributionBuses(
+      string electricalProjectId
+    )
     {
       List<ElectricalDistributionBusViewModel> distributionBuses =
         new List<ElectricalDistributionBusViewModel>();
@@ -328,6 +354,7 @@ namespace GMEPNodeGraph.Utilities
         electrical_distribution_buses.id as dist_bus_id,
         electrical_distribution_buses.status_id,
         electrical_distribution_buses.amp_rating_id,
+        electrical_distribution_buses.project_id,
         electrical_single_line_nodes.id as node_id,  
         electrical_single_line_nodes.loc_x,   
         electrical_single_line_nodes.loc_y,
@@ -335,18 +362,19 @@ namespace GMEPNodeGraph.Utilities
         electrical_single_line_nodes.output_connector_id
         FROM electrical_distribution_buses
         LEFT JOIN electrical_single_line_nodes ON electrical_single_line_nodes.id = electrical_distribution_buses.node_id
-        WHERE electrical_distribution_buses.project_id = @projectId
+        WHERE electrical_distribution_buses.electrical_project_id = @electricalProjectId
         ";
       OpenConnection();
       MySqlCommand command = new MySqlCommand(query, Connection);
-      command.Parameters.AddWithValue("@projectId", projectId);
+      command.Parameters.AddWithValue("@electricalProjectId", electricalProjectId);
       MySqlDataReader reader = command.ExecuteReader();
       while (reader.Read())
       {
         distributionBuses.Add(
           new ElectricalDistributionBusViewModel(
             GetSafeString(reader, "dist_bus_id"),
-            projectId,
+            GetSafeString(reader, "project_id"),
+            electricalProjectId,
             GetSafeString(reader, "node_id"),
             GetSafeInt(reader, "amp_rating_id"),
             GetSafeInt(reader, "status_id"),
@@ -361,7 +389,7 @@ namespace GMEPNodeGraph.Utilities
     }
 
     public List<ElectricalDistributionBreakerViewModel> GetElectricalDistributionBreakers(
-      string projectId
+      string electricalProjectId
     )
     {
       List<ElectricalDistributionBreakerViewModel> distributionBreakers =
@@ -374,6 +402,7 @@ namespace GMEPNodeGraph.Utilities
         electrical_distribution_breakers.num_poles,
         electrical_distribution_breakers.amp_rating_id,
         electrical_distribution_breakers.is_fuse_only,
+        electrical_distribution_breakers.project_id,
         electrical_single_line_nodes.id as node_id,  
         electrical_single_line_nodes.loc_x,   
         electrical_single_line_nodes.loc_y,
@@ -381,18 +410,19 @@ namespace GMEPNodeGraph.Utilities
         electrical_single_line_nodes.output_connector_id
         FROM electrical_distribution_breakers
         LEFT JOIN electrical_single_line_nodes ON electrical_single_line_nodes.id = electrical_distribution_breakers.node_id
-        WHERE electrical_distribution_breakers.project_id = @projectId
+        WHERE electrical_distribution_breakers.electrical_project_id = @electricalProjectId
         ";
       OpenConnection();
       MySqlCommand command = new MySqlCommand(query, Connection);
-      command.Parameters.AddWithValue("@projectId", projectId);
+      command.Parameters.AddWithValue("@electricalProjectId", electricalProjectId);
       MySqlDataReader reader = command.ExecuteReader();
       while (reader.Read())
       {
         distributionBreakers.Add(
           new ElectricalDistributionBreakerViewModel(
             GetSafeString(reader, "dist_bkr_id"),
-            projectId,
+            GetSafeString(reader, "project_id"),
+            electricalProjectId,
             GetSafeString(reader, "node_id"),
             GetSafeInt(reader, "amp_rating_id"),
             GetSafeInt(reader, "num_poles"),
@@ -408,7 +438,7 @@ namespace GMEPNodeGraph.Utilities
       return distributionBreakers;
     }
 
-    public List<ElectricalPanelViewModel> GetElectricalPanels(string projectId)
+    public List<ElectricalPanelViewModel> GetElectricalPanels(string electricalProjectId)
     {
       List<ElectricalPanelViewModel> panels = new List<ElectricalPanelViewModel>();
       string query =
@@ -419,6 +449,7 @@ namespace GMEPNodeGraph.Utilities
         electrical_panels.is_recessed,
         electrical_panels.color_code,
         electrical_panels.name,
+        electrical_panels.project_id,
         electrical_single_line_nodes.loc_x,
         electrical_single_line_nodes.loc_y,
         electrical_panels.status_id, 
@@ -432,18 +463,19 @@ namespace GMEPNodeGraph.Utilities
         electrical_single_line_nodes.output_connector_id
         FROM electrical_panels
         LEFT JOIN electrical_single_line_nodes ON electrical_single_line_nodes.id = electrical_panels.node_id
-        WHERE electrical_panels.project_id = @projectId
+        WHERE electrical_panels.electrical_project_id = @electricalProjectId
         ";
       OpenConnection();
       MySqlCommand command = new MySqlCommand(query, Connection);
-      command.Parameters.AddWithValue("@projectId", projectId);
+      command.Parameters.AddWithValue("@electricalProjectId", electricalProjectId);
       MySqlDataReader reader = command.ExecuteReader();
       while (reader.Read())
       {
         panels.Add(
           new ElectricalPanelViewModel(
             GetSafeString(reader, "panel_id"),
-            projectId,
+            GetSafeString(reader, "project_id"),
+            electricalProjectId,
             GetSafeString(reader, "node_id"),
             GetSafeString(reader, "name"),
             GetSafeInt(reader, "voltage_id"),
@@ -464,7 +496,9 @@ namespace GMEPNodeGraph.Utilities
       return panels;
     }
 
-    public List<ElectricalPanelBreakerViewModel> GetElectricalPanelBreakers(string projectId)
+    public List<ElectricalPanelBreakerViewModel> GetElectricalPanelBreakers(
+      string electricalProjectId
+    )
     {
       List<ElectricalPanelBreakerViewModel> distributionBreakers =
         new List<ElectricalPanelBreakerViewModel>();
@@ -475,6 +509,7 @@ namespace GMEPNodeGraph.Utilities
         electrical_panel_breakers.status_id,
         electrical_panel_breakers.num_poles,
         electrical_panel_breakers.amp_rating_id,
+        electrical_panel_breakers.project_id,
         electrical_single_line_nodes.id as node_id,  
         electrical_single_line_nodes.loc_x,   
         electrical_single_line_nodes.loc_y,
@@ -482,18 +517,19 @@ namespace GMEPNodeGraph.Utilities
         electrical_single_line_nodes.output_connector_id
         FROM electrical_panel_breakers
         LEFT JOIN electrical_single_line_nodes ON electrical_single_line_nodes.id = electrical_panel_breakers.node_id
-        WHERE electrical_panel_breakers.project_id = @projectId
+        WHERE electrical_panel_breakers.electrical_project_id = @electricalProjectId
         ";
       OpenConnection();
       MySqlCommand command = new MySqlCommand(query, Connection);
-      command.Parameters.AddWithValue("@projectId", projectId);
+      command.Parameters.AddWithValue("@electricalProjectId", electricalProjectId);
       MySqlDataReader reader = command.ExecuteReader();
       while (reader.Read())
       {
         distributionBreakers.Add(
           new ElectricalPanelBreakerViewModel(
             GetSafeString(reader, "panel_bkr_id"),
-            projectId,
+            GetSafeString(reader, "project_id"),
+            electricalProjectId,
             GetSafeString(reader, "node_id"),
             GetSafeInt(reader, "amp_rating_id"),
             GetSafeInt(reader, "num_poles"),
@@ -508,7 +544,7 @@ namespace GMEPNodeGraph.Utilities
       return distributionBreakers;
     }
 
-    public List<ElectricalDisconnectViewModel> GetElectricalDisconnects(string projectId)
+    public List<ElectricalDisconnectViewModel> GetElectricalDisconnects(string electricalProjectId)
     {
       List<ElectricalDisconnectViewModel> disconnects = new List<ElectricalDisconnectViewModel>();
       string query =
@@ -519,6 +555,7 @@ namespace GMEPNodeGraph.Utilities
         electrical_disconnects.num_poles,
         electrical_disconnects.as_size_id,
         electrical_disconnects.af_size_id,
+        electrical_disconnects.project_id,
         electrical_single_line_nodes.id as node_id,  
         electrical_single_line_nodes.loc_x,   
         electrical_single_line_nodes.loc_y,
@@ -526,18 +563,19 @@ namespace GMEPNodeGraph.Utilities
         electrical_single_line_nodes.output_connector_id
         FROM electrical_disconnects
         LEFT JOIN electrical_single_line_nodes ON electrical_single_line_nodes.id = electrical_disconnects.node_id
-        WHERE electrical_disconnects.project_id = @projectId
+        WHERE electrical_disconnects.electrical_project_id = @electricalProjectId
         ";
       OpenConnection();
       MySqlCommand command = new MySqlCommand(query, Connection);
-      command.Parameters.AddWithValue("@projectId", projectId);
+      command.Parameters.AddWithValue("@electricalProjectId", electricalProjectId);
       MySqlDataReader reader = command.ExecuteReader();
       while (reader.Read())
       {
         disconnects.Add(
           new ElectricalDisconnectViewModel(
             GetSafeString(reader, "disconnect_id"),
-            projectId,
+            GetSafeString(reader, "project_id"),
+            electricalProjectId,
             GetSafeString(reader, "node_id"),
             GetSafeInt(reader, "as_size_id"),
             GetSafeInt(reader, "af_size_id"),
@@ -553,7 +591,9 @@ namespace GMEPNodeGraph.Utilities
       return disconnects;
     }
 
-    public List<ElectricalTransformerViewModel> GetElectricalTransformers(string projectId)
+    public List<ElectricalTransformerViewModel> GetElectricalTransformers(
+      string electricalProjectId
+    )
     {
       List<ElectricalTransformerViewModel> transformers =
         new List<ElectricalTransformerViewModel>();
@@ -566,6 +606,7 @@ namespace GMEPNodeGraph.Utilities
         electrical_transformers.voltage_id,
         electrical_transformers.name,
         electrical_transformers.color_code,
+        electrical_transformers.project_id,
         electrical_single_line_nodes.id as node_id,  
         electrical_single_line_nodes.loc_x,   
         electrical_single_line_nodes.loc_y,
@@ -573,19 +614,20 @@ namespace GMEPNodeGraph.Utilities
         electrical_single_line_nodes.output_connector_id
         FROM electrical_transformers
         LEFT JOIN electrical_single_line_nodes ON electrical_single_line_nodes.id = electrical_transformers.node_id
-        WHERE electrical_transformers.project_id = @projectId
+        WHERE electrical_transformers.electrical_project_id = @electricalProjectId
         ";
       OpenConnection();
 
       MySqlCommand command = new MySqlCommand(query, Connection);
-      command.Parameters.AddWithValue("@projectId", projectId);
+      command.Parameters.AddWithValue("@electricalProjectId", electricalProjectId);
       MySqlDataReader reader = command.ExecuteReader();
       while (reader.Read())
       {
         transformers.Add(
           new ElectricalTransformerViewModel(
             GetSafeString(reader, "transformer_id"),
-            projectId,
+            GetSafeString(reader, "project_id"),
+            electricalProjectId,
             GetSafeString(reader, "node_id"),
             GetSafeString(reader, "name"),
             GetSafeInt(reader, "voltage_id"),
@@ -602,7 +644,7 @@ namespace GMEPNodeGraph.Utilities
       return transformers;
     }
 
-    public List<ElectricalEquipmentViewModel> GetElectricalEquipment(string projectId)
+    public List<ElectricalEquipmentViewModel> GetElectricalEquipment(string electricalProjectId)
     {
       List<ElectricalEquipmentViewModel> equipment = new List<ElectricalEquipmentViewModel>();
       string query =
@@ -619,6 +661,7 @@ namespace GMEPNodeGraph.Utilities
         electrical_equipment.category_id,
         electrical_equipment.hp,
         electrical_equipment.status_id,
+        electrical_equipment.project_id,
         electrical_single_line_nodes.id as node_id,  
         electrical_single_line_nodes.loc_x,   
         electrical_single_line_nodes.loc_y,
@@ -626,13 +669,13 @@ namespace GMEPNodeGraph.Utilities
         electrical_single_line_nodes.output_connector_id
         FROM electrical_equipment
 		    LEFT JOIN electrical_single_line_nodes ON electrical_single_line_nodes.id = electrical_equipment.node_id
-        WHERE electrical_equipment.project_id = @projectId
+        WHERE electrical_equipment.electrical_project_id = @electricalProjectId
         AND node_id IS NOT NULL
         ";
       OpenConnection();
 
       MySqlCommand command = new MySqlCommand(query, Connection);
-      command.Parameters.AddWithValue("@projectId", projectId);
+      command.Parameters.AddWithValue("@electricalProjectId", electricalProjectId);
       MySqlDataReader reader = command.ExecuteReader();
       while (reader.Read())
       {
@@ -641,7 +684,8 @@ namespace GMEPNodeGraph.Utilities
           equipment.Add(
             new ElectricalEquipmentViewModel(
               GetSafeString(reader, "equipment_id"),
-              projectId,
+              GetSafeString(reader, "project_id"),
+              electricalProjectId,
               GetSafeString(reader, "node_id"),
               GetSafeString(reader, "equip_no"),
               GetSafeInt(reader, "voltage_id"),
@@ -662,16 +706,16 @@ namespace GMEPNodeGraph.Utilities
       return equipment;
     }
 
-    public List<NodeLinkViewModel> GetNodeLinks(string projectId)
+    public List<NodeLinkViewModel> GetNodeLinks(string electricalProjectId)
     {
       List<NodeLinkViewModel> nodeConnectors = new List<NodeLinkViewModel>();
       string query =
         @"
-        SELECT * from electrical_single_line_node_links WHERE project_id = @projectId
+        SELECT * from electrical_single_line_node_links WHERE electrical_project_id = @electricalProjectId
         ";
       OpenConnection();
       MySqlCommand command = new MySqlCommand(query, Connection);
-      command.Parameters.AddWithValue("@projectId", projectId);
+      command.Parameters.AddWithValue("@electricalProjectId", electricalProjectId);
       MySqlDataReader reader = command.ExecuteReader();
       while (reader.Read())
       {
